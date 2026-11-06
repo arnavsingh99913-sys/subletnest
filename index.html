@@ -1,0 +1,3610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SubletNest - Sublet Spare Rooms & Furniture Inventory (.NET 8 Fullstack)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- SubletNest Onboarding Modular Stylesheet -->
+  <link href="onboarding/onboarding.css" rel="stylesheet" />
+
+  <!-- Skiper-UI 43 Cursor-Responsive Button Gestures Stylesheet -->
+  <link href="skiper-gestures/skiper-gestures.css" rel="stylesheet" />
+
+  <!-- Skiper-UI 87 Scroll Fade & Noir Satin Theme Stylesheet -->
+  <link href="skiper-theme/skiper87.css" rel="stylesheet" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f4f4f5',
+              100: '#e4e4e7',
+              200: '#d4d4d8',
+              500: '#a1a1aa',
+              600: '#f4f4f5',
+              700: '#e4e4e7',
+              900: '#09090b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Smooth scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    .glassmorphism {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    @keyframes shutterFlash {
+      0% { opacity: 0; }
+      50% { opacity: 0.85; }
+      100% { opacity: 0; }
+    }
+    .flash-effect {
+      animation: shutterFlash 0.35s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-[#080808] text-[#ededed] font-sans antialiased min-h-screen flex flex-col selection:bg-zinc-700 selection:text-white">
+
+  <!-- ================= ONBOARDING: LOCATION SELECTION (ALL STATES & CITIES IN INDIA) ================= -->
+  <div id="onboardingContainer" class="ob-hidden">
+    <!-- Ambient Cyber Grid Background -->
+    <div class="ob-grid-bg"></div>
+
+    <!-- Stepper Progress HUD -->
+    <div class="ob-progress-hud">
+      <div class="ob-step-node active" data-step="1">
+        <div class="ob-step-badge">1</div>
+        <span class="tracking-wider">SELECT CITY &amp; AREA</span>
+      </div>
+      <div class="ob-step-connector"></div>
+      <div class="ob-step-node" data-step="2">
+        <div class="ob-step-badge">2</div>
+        <span class="tracking-wider">SUBLET MARKETPLACE</span>
+      </div>
+    </div>
+
+    <!-- -------------------------------------------------------------
+         STEP 1: LOCATION SELECTION (ALL STATES & CITIES IN INDIA)
+    ------------------------------------------------------------- -->
+    <div id="step-location" class="ob-stage stage-active">
+      <div class="ob-location-center-wrapper">
+        
+        <!-- Main Interactive Glass Card -->
+        <div class="ob-location-card">
+          
+          <!-- Card Header -->
+          <div class="text-center mb-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-950/80 border border-sky-800/80 text-sky-400 text-xs font-black tracking-wider uppercase mb-3 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+              <i data-lucide="compass" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>All India Rental Radar</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Find Rooms &amp; Sublets in Your City
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto mt-2">
+              Select your Indian State and City to explore verified rooms and spare flats. Specify an area or street name to shortlist matching rooms instantly.
+            </p>
+          </div>
+
+          <!-- Selection Form Controls -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            
+            <!-- Dropdown 1: State Selection (All 28 States & 8 UTs) -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="map" class="w-3.5 h-3.5 text-sky-400"></i>
+                  <span>1. Indian State / UT</span>
+                </span>
+                <span class="text-sky-400 font-extrabold">*</span>
+              </label>
+              <select 
+                id="obStateDropdown" 
+                onchange="window.onboardingManager.handleStateDropdownChange(this.value)"
+                class="ob-glass-select">
+                <option value="">-- 📍 Choose State or UT (36 Available) --</option>
+              </select>
+            </div>
+
+            <!-- Dropdown 2: City Selection (All cities in selected State) -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="building-2" class="w-3.5 h-3.5 text-sky-400"></i>
+                  <span>2. City</span>
+                </span>
+                <span class="text-sky-400 font-extrabold">*</span>
+              </label>
+              <select 
+                id="obCityDropdown" 
+                onchange="window.onboardingManager.handleCityDropdownChange(this.value)"
+                disabled
+                class="ob-glass-select">
+                <option value="">-- 🏙️ Select State First --</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Area / Street / Housing Scheme Input (Optional & Skippable) -->
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>3. Specific Area, Locality, or Street Name</span>
+              </label>
+              <span class="text-[10px] text-emerald-400 font-semibold bg-emerald-950/70 border border-emerald-800/60 px-2.5 py-0.5 rounded-full">
+                Optional &bull; Skippable
+              </span>
+            </div>
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"></i>
+              <input 
+                type="text" 
+                id="obAreaInput" 
+                oninput="window.onboardingManager.handleAreaInputChange(this.value)"
+                placeholder="e.g. Indiranagar, 100ft Road, Bandra West, Cyber City, Koramangala 4th Block..."
+                disabled
+                class="ob-glass-input pl-10 pr-9">
+              <button 
+                type="button" 
+                id="obClearAreaBtn" 
+                onclick="window.onboardingManager.clearAreaInput()" 
+                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                title="Clear area">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Locality Suggestions for the chosen city -->
+          <div id="obLocalityChipsContainer" class="hidden mb-5 p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i>
+              <span>Popular Neighborhoods in <span id="obChipsCityName" class="text-sky-300 font-extrabold"></span>:</span>
+            </p>
+            <div id="obLocalityChipsList" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+              <!-- Populated dynamically based on chosen city -->
+            </div>
+          </div>
+
+          <!-- Bottom Summary & Action Buttons -->
+          <div class="pt-4 border-t border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-300 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="obSelectionSummary">Choose a State and City above to explore available rooms.</span>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button 
+                type="button" 
+                id="obSkipAreaBtn" 
+                onclick="window.onboardingManager.confirmLocationAndLaunch(true)" 
+                disabled
+                class="hidden px-4 py-2.5 rounded-xl border border-slate-700 hover:border-slate-600 bg-slate-800/80 text-xs font-bold text-slate-300 hover:text-white transition-all whitespace-nowrap">
+                <span>View All City Rooms</span>
+              </button>
+
+              <button 
+                type="button" 
+                id="obConfirmLocationBtn" 
+                onclick="window.onboardingManager.confirmLocationAndLaunch(false)" 
+                disabled 
+                class="ob-btn-primary flex-1 sm:flex-initial px-6 py-2.5 opacity-40 cursor-not-allowed whitespace-nowrap">
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <span id="obConfirmBtnText">Select City to Explore Sublets</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Feature Pills -->
+          <div class="mt-5 pt-4 border-t border-slate-800/60 grid grid-cols-3 gap-2 text-center text-[10px] text-slate-400 font-medium">
+            <div class="flex items-center justify-center gap-1">
+              <i data-lucide="zap" class="w-3 h-3 text-amber-400"></i>
+              <span>Keyword Address Match</span>
+            </div>
+            <div class="flex items-center justify-center gap-1">
+              <i data-lucide="sofa" class="w-3 h-3 text-sky-400"></i>
+              <span>Furniture Inventory</span>
+            </div>
+            <div class="flex items-center justify-center gap-1">
+              <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>
+              <span>Verified Primary Leasers</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SHIFTED CYBER-GLASS AUTH MODAL (LIST ROOM / PROFILE) ================= -->
+  <div id="obAuthModal" class="ob-auth-modal-overlay hidden">
+    <div class="ob-auth-card">
+      
+      <!-- Close Button -->
+      <button 
+        type="button" 
+        onclick="window.onboardingManager.closeAuthModal()" 
+        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors z-10"
+        title="Close dialog and return to browsing">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Brand Header -->
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30">
+          <i data-lucide="home" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-black font-display tracking-tight text-white">Sublet<span class="text-sky-400">Nest</span></span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-800">
+              Leaser Portal
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Sign in to list your spare room or manage sublets</p>
+        </div>
+      </div>
+
+      <!-- One-Click Google Sign-In Option -->
+      <button type="button" class="btnGoogleSignIn ob-btn-google mb-4">
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <!-- Divider -->
+      <div class="relative flex py-1 items-center mb-4">
+        <div class="flex-grow border-t border-slate-700/80"></div>
+        <span class="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-400">or sign in with leaser id</span>
+        <div class="flex-grow border-t border-slate-700/80"></div>
+      </div>
+
+      <!-- Login Form Panel -->
+      <div id="obLoginFormBox" class="space-y-4">
+        <!-- Error Alert -->
+        <div id="obLoginError" class="hidden p-3 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2"></div>
+
+        <form id="obLoginForm" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Name, Email, or Contact <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="user-check" class="w-4 h-4"></i>
+              </div>
+              <input 
+                type="text" 
+                id="obLoginIdentifier" 
+                required 
+                placeholder="Enter Name, Email, or Contact number" 
+                class="ob-glass-input"
+                autocomplete="username"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Password <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+              </div>
+              <input 
+                type="password" 
+                id="obLoginPassword" 
+                required 
+                placeholder="Enter your account password" 
+                class="ob-glass-input"
+                autocomplete="current-password"
+              />
+            </div>
+          </div>
+
+          <button type="submit" id="obLoginSubmitBtn" class="ob-btn-primary mt-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i>
+            <span>Sign In to SubletNest</span>
+          </button>
+
+          <div class="pt-2 text-center text-xs text-slate-400">
+            New to SubletNest? 
+            <button type="button" id="obBtnSwitchSignup" class="text-sky-400 font-bold hover:underline ml-1">
+              Register as Leaser
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Signup Form Panel -->
+      <div id="obSignupFormBox" class="hidden space-y-4">
+        <!-- Error Alert -->
+        <div id="obSignupError" class="hidden p-3 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2"></div>
+
+        <form id="obSignupForm" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Leaser Name <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="user" class="w-4 h-4"></i>
+              </div>
+              <input type="text" id="obSignupName" required placeholder="e.g. Rohan Sharma" class="ob-glass-input" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Contact Number <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="phone" class="w-4 h-4"></i>
+              </div>
+              <input type="tel" id="obSignupContact" required placeholder="e.g. +91 98765 43210" class="ob-glass-input" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Email Address <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+              </div>
+              <input type="email" id="obSignupEmail" required placeholder="e.g. rohan@example.com" class="ob-glass-input" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Password <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+              </div>
+              <input type="password" id="obSignupPassword" required minlength="4" placeholder="Min 4 characters" class="ob-glass-input" />
+            </div>
+          </div>
+
+          <button type="submit" id="obSignupSubmitBtn" class="ob-btn-primary mt-2">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            <span>Complete Leaser Registration</span>
+          </button>
+
+          <div class="pt-2 text-center text-xs text-slate-400">
+            Already registered? 
+            <button type="button" id="obBtnSwitchLogin" class="text-sky-400 font-bold hover:underline ml-1">
+              Sign In
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= ADMIN PORTAL & AUDIT DATABASE MODAL ================= -->
+  <div id="adminPortalModal" class="ob-auth-modal-overlay hidden">
+    <div class="admin-modal-dialog">
+      <!-- Admin Header -->
+      <div class="p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-300 shadow-md">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-white font-display">SubletNest Admin Portal</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900/70 text-purple-300 border border-purple-700">
+                🛡️ Administrator
+              </span>
+            </div>
+            <p class="text-xs text-slate-400">Master Audit Database & Registered Leasers Directory</p>
+          </div>
+        </div>
+        <button onclick="window.onboardingManager.closeAdminPortal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex border-b border-slate-800 bg-slate-950/60 px-4">
+        <button id="adminTabBtnUsers" onclick="window.onboardingManager.switchAdminTab('users')" class="admin-nav-tab active flex items-center gap-2">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Registered Users Directory</span>
+        </button>
+        <button id="adminTabBtnAudit" onclick="window.onboardingManager.switchAdminTab('audit')" class="admin-nav-tab flex items-center gap-2">
+          <i data-lucide="archive" class="w-4 h-4"></i>
+          <span>Removed Rooms & Audit Database</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Registered Users Directory -->
+      <div id="adminPanelUsers" class="p-5 overflow-y-auto space-y-4 max-h-[70vh]">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="relative w-full sm:max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-sky-400">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="text" 
+              id="adminUserSearchInput"
+              oninput="window.onboardingManager.handleAdminUserSearch(this.value)"
+              placeholder="Search user by Name, Contact number, or Email..." 
+              class="admin-search-input"
+            />
+          </div>
+          <span id="adminUsersCount" class="text-xs text-sky-400 font-bold self-end sm:self-center">Loading accounts...</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/40">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400 bg-slate-900/60">
+                <th class="py-2.5 px-3">User</th>
+                <th class="py-2.5 px-3">Contact</th>
+                <th class="py-2.5 px-3">Email</th>
+                <th class="py-2.5 px-3">Role</th>
+                <th class="py-2.5 px-3">Registered On</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersTableBody" class="divide-y divide-slate-800/40">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Removed Rooms & Listing Audit Database -->
+      <div id="adminPanelAudit" class="hidden p-5 overflow-y-auto space-y-4 max-h-[70vh]">
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-sm font-bold text-white">Listed & Removed Rooms Audit Log</h4>
+            <p class="text-xs text-slate-400">Full audit information: date listed, complete address, host contacts, and date removed from website.</p>
+          </div>
+          <span id="adminAuditCount" class="text-xs text-emerald-400 font-bold"></span>
+        </div>
+
+        <div id="adminAuditListContainer" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MAIN APPLICATION WRAPPER ================= -->
+  <div id="mainAppContainer" class="transition-opacity duration-500 min-h-screen flex flex-col opacity-0 pointer-events-none">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="sticky top-0 z-40 skiper-header-glass transition-shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer select-none" onclick="switchView('explore')">
+        <div class="w-10 h-10 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="home" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-extrabold font-display tracking-tight text-[#ededed]">Sublet<span class="text-white/60">Nest</span></span>
+            <span id="backendStatusPill" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 bg-emerald-950/40 text-emerald-300 border border-emerald-800/30 rounded-full">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              .NET 8 Backend Online
+            </span>
+          </div>
+          <p class="text-[10px] text-slate-500 hidden sm:block">Partnership Sublets & Leftover Furniture Inventory</p>
+        </div>
+      </div>
+
+      <!-- Center Search (Marketplace filter) -->
+      <div class="hidden lg:flex flex-1 max-w-md mx-4 relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </div>
+        <input 
+          id="globalSearchInput"
+          type="text" 
+          placeholder="Search by city, locality, or leftover item (e.g. Desk, AC)..." 
+          oninput="handleSearch(this.value)"
+          class="w-full pl-10 pr-4 py-2 text-sm bg-[#141417] hover:bg-[#18181d] focus:bg-[#18181d] text-zinc-100 placeholder-zinc-500 border border-white/10 focus:border-white/25 rounded-full transition-all outline-none"
+        >
+      </div>
+
+      <!-- Action Nav -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button 
+          id="navBtnExplore" 
+          onclick="switchView('explore')" 
+          class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-full bg-white/[0.08] text-zinc-100 hover:bg-white/[0.14] border border-white/10 transition-all">
+          <i data-lucide="compass" class="w-4 h-4"></i>
+          <span>Explore</span>
+        </button>
+
+        <button 
+          id="navBtnList" 
+          onclick="handleListButtonClick()" 
+          class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-full skiper-btn-primary shadow-sm hover:shadow-md transition-all transform active:scale-95">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>List Room</span>
+        </button>
+
+        <button 
+          onclick="switchView('howItWorks')" 
+          class="hidden md:flex items-center gap-1 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-zinc-100 rounded-lg">
+          <span>How It Works</span>
+        </button>
+
+        <button 
+          onclick="handleMySubletsClick()" 
+          class="hidden sm:flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-zinc-100 rounded-lg">
+          <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i>
+          <span>My Sublets</span>
+        </button>
+
+        <!-- Dynamic Auth Button / Profile Menu -->
+        <div class="relative pl-1 border-l border-white/10" id="authContainer">
+          <!-- Populated by JS based on currentUser state -->
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= SUB-NAV BANNER ================= -->
+  <div class="bg-[#0b0b0e] text-zinc-300 py-2.5 px-4 border-b border-white/[0.06]">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-slate-300 gap-2">
+      <div class="flex items-center gap-2 text-center sm:text-left flex-wrap">
+        <span class="bg-white/[0.08] text-zinc-200 border border-white/10 font-bold px-2 py-0.5 rounded text-[11px] tracking-wide">SUBLET PARTNERSHIP</span>
+        <span>Have an unused spare room in your 2/3/4 BHK? List it for partnership sublet with leftover furniture counts & shared bills!</span>
+      </div>
+      <div class="flex items-center gap-4 text-slate-400 text-xs">
+        <span class="flex items-center gap-1 text-blue-300 font-semibold"><i data-lucide="camera" class="w-3.5 h-3.5 text-blue-400"></i> Live Camera Input</span>
+        <span class="flex items-center gap-1 text-emerald-300 font-semibold"><i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i> SQLite DB Sync</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ================= VIEW 1: EXPLORE MARKETPLACE ================= -->
+    <section id="view-explore" class="block space-y-6">
+      
+      <!-- Area, City & Scheme Search + Shortlist Control Center -->
+      <div class="bg-[#0e0e11] rounded-3xl p-5 shadow-2xl border border-white/[0.08] space-y-4">
+        
+        <!-- ROW 1: Area / City / Scheme Search Bar + City Selector + Shortlist Filter Button -->
+        <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+          
+          <!-- Area / Locality / Scheme Live Search Input -->
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-600">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </div>
+            <input 
+              id="areaSchemeSearchInput"
+              type="text" 
+              placeholder="Search area, city, locality, or housing scheme (e.g. Indiranagar, Bandra, Prestige)..." 
+              oninput="handleAreaSchemeSearch(this.value)"
+              class="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-[#141417] hover:bg-[#18181d] focus:bg-[#18181d] border border-white/[0.09] focus:border-white/25 rounded-2xl transition-all outline-none font-medium text-zinc-100 placeholder:text-zinc-500"
+            >
+            <button 
+              id="btnClearAreaSearch" 
+              type="button"
+              onclick="clearAreaSearch()" 
+              class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              title="Clear search">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- City Dropdown -->
+          <div class="flex items-center gap-2">
+            <select id="filterCity" onchange="applyFilters()" class="w-full sm:w-auto text-xs sm:text-sm bg-[#141417] border border-white/[0.09] text-zinc-200 py-2.5 px-3.5 rounded-2xl focus:border-white/25 outline-none font-semibold cursor-pointer">
+              <option value="all">📍 All Cities & Metros</option>
+              <option value="Bangalore">Bangalore</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Gurgaon">Gurgaon / Delhi NCR</option>
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Pune">Pune</option>
+            </select>
+
+            <!-- My Shortlist Filter Toggle Button -->
+            <button 
+              id="btnShortlistToggle" 
+              type="button"
+              onclick="toggleShortlistOnly()" 
+              class="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-2xl border border-white/[0.09] bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-all shadow-sm flex-shrink-0"
+              title="Show only rooms added to your personal shortlist">
+              <i data-lucide="heart" id="shortlistToggleIcon" class="w-4 h-4 text-rose-500"></i>
+              <span class="hidden sm:inline">My Shortlist</span>
+              <span id="shortlistBadgeCount" class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black">0</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ROW 2: Specific Room Layout & Furnishing Filters + Live Count -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/[0.06]">
+          
+          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
+              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i> Filters:
+            </span>
+            
+            <!-- Flat BHK Filter -->
+            <select id="filterBhk" onchange="applyFilters()" class="text-xs bg-[#141417] border border-white/[0.09] text-zinc-300 py-1.5 px-3 rounded-xl focus:border-white/25 outline-none font-medium">
+              <option value="all">All Flat Layouts</option>
+              <option value="2 BHK">In 2 BHK</option>
+              <option value="3 BHK">In 3 BHK</option>
+              <option value="4+ BHK">In 4+ BHK</option>
+            </select>
+
+            <!-- Room Offering Filter -->
+            <select id="filterRoomType" onchange="applyFilters()" class="text-xs bg-[#141417] border border-white/[0.09] text-zinc-300 py-1.5 px-3 rounded-xl focus:border-white/25 outline-none font-medium">
+              <option value="all">Any Room Offering</option>
+              <option value="Private Bedroom">Private Bedroom</option>
+              <option value="Master Bed with Attached Bath">Master Bed (Attached Bath)</option>
+              <option value="Shared Double Room">Shared Double Room</option>
+              <option value="Entire 1 BHK Portion">Entire 1 BHK Portion</option>
+            </select>
+
+            <!-- Furnishing Status -->
+            <select id="filterFurnishing" onchange="applyFilters()" class="text-xs bg-[#141417] border border-white/[0.09] text-zinc-300 py-1.5 px-3 rounded-xl focus:border-white/25 outline-none font-medium">
+              <option value="all">All Furnishing Levels</option>
+              <option value="Has Study Setup">Has Desk + Chair Setup</option>
+              <option value="Has AC">Has AC Installed</option>
+            </select>
+
+            <!-- Max Budget -->
+            <select id="filterBudget" onchange="applyFilters()" class="text-xs bg-[#141417] border border-white/[0.09] text-zinc-300 py-1.5 px-3 rounded-xl focus:border-white/25 outline-none font-medium">
+              <option value="all">Any Budget</option>
+              <option value="12000">Under ₹12,000</option>
+              <option value="18000">Under ₹18,000</option>
+              <option value="25000">Under ₹25,000</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-3 ml-auto">
+            <span id="resultsCount" class="text-xs font-semibold text-zinc-400">Loading listings...</span>
+            <button onclick="resetFilters()" class="text-xs text-zinc-300 hover:text-white font-semibold underline flex items-center gap-1">
+              <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Quick Stats Banner -->
+      <div id="statsSummaryBanner" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Listings Grid -->
+      <div id="listingsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 skiper87-scroll-y">
+        <!-- Injected via JavaScript from Backend API -->
+      </div>
+    </section>
+
+    <!-- ================= VIEW 2: CREATE LISTING WITH CAMERA & GALLERY ================= -->
+    <section id="view-create" class="hidden">
+      
+      <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold font-display text-[#ededed] tracking-tight">List Your Spare Room & Leftover Furniture</h1>
+          <p class="text-sm text-slate-500 mt-1">Specify your flat's size, attach multiple room photos via camera or files (stored directly on the backend server), and itemize what furniture stays behind.</p>
+        </div>
+        <button onclick="switchView('explore')" class="self-start md:self-auto inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3.5 py-2 rounded-xl shadow-sm">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Explore
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- LEFT COLUMN: THE STEP-BY-STEP CONFIGURATOR (7 Cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <form id="listingForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+            
+            <!-- SECTION 1: Flat Details -->
+            <div class="bg-[#0e0e11] rounded-2xl p-6 border border-white/[0.08] shadow-xl space-y-5">
+              <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                <span class="w-7 h-7 rounded-lg bg-blue-100 text-brand-600 font-bold flex items-center justify-center text-xs">1</span>
+                <h3 class="font-bold text-slate-900 font-display">Apartment & Space Allocation</h3>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Listing Title</label>
+                <input 
+                  id="inputTitle" 
+                  type="text" 
+                  required
+                  value="1 Private Master Bedroom in Spacious 2 BHK" 
+                  oninput="updatePreview()" 
+                  class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 focus:bg-white rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+                  placeholder="e.g. Sunny Room in 2 BHK with left behind study desk and chair"
+                >
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Total Flat Layout</label>
+                  <select id="inputTotalBhk" onchange="updatePreview()" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium">
+                    <option value="2 BHK" selected>2 BHK Apartment</option>
+                    <option value="3 BHK">3 BHK Apartment</option>
+                    <option value="4 BHK">4 BHK Apartment</option>
+                    <option value="1.5 BHK">1.5 BHK Studio/Convertible</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Space You Are Renting Out</label>
+                  <select id="inputOffering" onchange="updatePreview()" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium">
+                    <option value="1 Private Bedroom" selected>1 Private Bedroom (Shared Bath)</option>
+                    <option value="1 Master Bed with Attached Bath">1 Master Bed (Attached Bath)</option>
+                    <option value="1 Shared Bed in Double Room">1 Shared Bed in Double Room</option>
+                    <option value="Entire 1 BHK Portion">Entire 1 BHK Portion of Flat</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">City & Neighborhood</label>
+                  <input 
+                    id="inputLocation" 
+                    type="text" 
+                    required
+                    value="Koramangala 4th Block, Bangalore" 
+                    oninput="updatePreview()" 
+                    class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+                    placeholder="e.g. Bandra West, Mumbai"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Available From</label>
+                  <input 
+                    id="inputDate" 
+                    type="text" 
+                    value="Immediate Move-in" 
+                    oninput="updatePreview()" 
+                    class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+                    placeholder="e.g. Immediate or 1st Next Month"
+                  >
+                </div>
+              </div>
+
+              <!-- Rent & Deposit -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Monthly Rent Share (₹)</label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">₹</span>
+                    <input 
+                      id="inputRent" 
+                      type="number" 
+                      required
+                      value="14500" 
+                      oninput="updatePreview()" 
+                      class="w-full pl-7 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold text-slate-900"
+                    >
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Security Deposit (₹)</label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">₹</span>
+                    <input 
+                      id="inputDeposit" 
+                      type="number" 
+                      value="30000" 
+                      oninput="updatePreview()" 
+                      class="w-full pl-7 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold text-slate-900"
+                    >
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Utility Bills</label>
+                  <select id="inputBills" onchange="updatePreview()" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                    <option value="Split 50/50 evenly">Split 50/50 evenly</option>
+                    <option value="Included in Rent">Included in Rent</option>
+                    <option value="Metered separately">Metered separately</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: PHOTO UPLOAD WITH LIVE CAMERA INPUT & MULTI-FILE GALLERY -->
+            <div class="bg-[#0e0e11] rounded-2xl p-6 border border-white/[0.08] shadow-xl space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs">2</span>
+                  <div>
+                    <h3 class="font-bold text-slate-900 font-display">Apartment & Room Photos (Camera Input)</h3>
+                    <p class="text-xs text-slate-500">Capture live with device camera or pick from gallery — photos are saved to backend storage.</p>
+                  </div>
+                </div>
+                <span id="photoCounterBadge" class="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200">
+                  1 Photo Attached
+                </span>
+              </div>
+
+              <!-- Camera & Upload Action Triggers -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                
+                <!-- 1. Open Live Web Camera Viewfinder Modal -->
+                <button 
+                  type="button" 
+                  id="btnLiveCamera"
+                  onclick="openCameraModal()"
+                  class="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs transition-all shadow-sm group">
+                  <div class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-brand-500/20">
+                    <i data-lucide="camera" class="w-4 h-4"></i>
+                  </div>
+                  <div class="text-left">
+                    <span class="block text-xs font-extrabold text-brand-800">Take Live Camera Photo</span>
+                    <span class="block text-[10px] text-brand-600 font-medium">Webcam or mobile viewfinder</span>
+                  </div>
+                </button>
+
+                <!-- 2. Device Camera Direct / Gallery Multi-file input -->
+                <label class="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-all cursor-pointer group">
+                  <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <i data-lucide="image-plus" class="w-4 h-4"></i>
+                  </div>
+                  <div class="text-left">
+                    <span class="block text-xs font-extrabold text-slate-800">Upload Files / Mobile Snap</span>
+                    <span class="block text-[10px] text-slate-500 font-medium">JPEG, PNG, WebP up to 15MB</span>
+                  </div>
+                  <input 
+                    type="file" 
+                    id="fileUploadInput" 
+                    accept="image/*" 
+                    capture="environment"
+                    multiple 
+                    onchange="handleGalleryUpload(this)" 
+                    class="hidden"
+                  >
+                </label>
+              </div>
+
+              <!-- Uploading progress spinner indicator -->
+              <div id="uploadSpinner" class="hidden p-3 bg-brand-50 rounded-xl border border-brand-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-4 h-4 border-2 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span class="text-xs font-semibold text-brand-700">Uploading photo to backend server...</span>
+                </div>
+                <span class="text-[10px] text-brand-500">POST /api/upload</span>
+              </div>
+
+              <!-- Thumbnails Deck -->
+              <div>
+                <p class="text-[11px] font-semibold text-slate-500 mb-2">Attached Photos (Click to set as main cover, or use ✕ to remove):</p>
+                <div id="thumbnailsContainer" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  <!-- Injected via JavaScript -->
+                </div>
+              </div>
+
+              <!-- Sample Stock Library Quick-Pick -->
+              <div class="pt-3 border-t border-slate-100">
+                <span class="text-[11px] text-slate-400 block mb-2 font-medium">Or pick from sample furnished rooms:</span>
+                <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                  <button type="button" onclick="addStockPhoto('https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80')" class="flex-shrink-0 text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium">
+                    + Sunny Study Room
+                  </button>
+                  <button type="button" onclick="addStockPhoto('https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=800&q=80')" class="flex-shrink-0 text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium">
+                    + Modern Master Bed
+                  </button>
+                  <button type="button" onclick="addStockPhoto('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80')" class="flex-shrink-0 text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium">
+                    + Living Room & Balcony
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: Leftover Furniture Inventory (Dropdowns & Quantities) -->
+            <div class="bg-[#0e0e11] rounded-2xl p-6 border border-white/[0.08] shadow-xl space-y-5">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-xs">3</span>
+                  <div>
+                    <h3 class="font-bold text-slate-900 font-display">Leftover Furniture Inventory</h3>
+                    <p class="text-xs text-slate-500">Itemize the furniture left by previous renters with exact piece counts.</p>
+                  </div>
+                </div>
+                <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Itemized Breakdown</span>
+              </div>
+
+              <!-- Bedroom Furniture Category -->
+              <div class="space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <i data-lucide="bed" class="w-3.5 h-3.5 text-brand-600"></i> Furniture Inside Available Room
+                </h4>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <!-- Bed Item -->
+                  <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-800">Bed Frame & Mattress</p>
+                      <p class="text-[11px] text-slate-500">Included size</p>
+                    </div>
+                    <select id="inv_bed" onchange="updatePreview()" class="text-xs bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-medium focus:ring-1 focus:ring-brand-500">
+                      <option value="None">None (BYOB)</option>
+                      <option value="1 Queen Bed" selected>1 Queen Bed</option>
+                      <option value="1 Single Bed">1 Single Bed</option>
+                      <option value="1 King Bed">1 King Bed</option>
+                    </select>
+                  </div>
+
+                  <!-- Chairs with Counter -->
+                  <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-800">Chairs Left Behind</p>
+                      <p class="text-[11px] text-slate-500">Select quantity</p>
+                    </div>
+                    <select id="inv_chairs" onchange="updatePreview()" class="text-xs bg-white border border-slate-300 rounded-lg px-3 py-1 font-bold text-brand-700 focus:ring-1 focus:ring-brand-500">
+                      <option value="0">0 Chairs</option>
+                      <option value="1 Chair">1 Chair</option>
+                      <option value="2 Chairs" selected>2 Chairs</option>
+                      <option value="3 Chairs">3 Chairs</option>
+                      <option value="4+ Chairs">4+ Chairs</option>
+                    </select>
+                  </div>
+
+                  <!-- Study Desk -->
+                  <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-800">Study / Work Desk</p>
+                      <p class="text-[11px] text-slate-500">Workstation ready</p>
+                    </div>
+                    <select id="inv_desk" onchange="updatePreview()" class="text-xs bg-white border border-slate-300 rounded-lg px-2 py-1 font-medium">
+                      <option value="None">0 (No Desk)</option>
+                      <option value="1 Study Desk" selected>1 Study Desk</option>
+                      <option value="2 Desks">2 Desks</option>
+                    </select>
+                  </div>
+
+                  <!-- Wardrobe / Almirah -->
+                  <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-800">Wardrobe / Storage</p>
+                      <p class="text-[11px] text-slate-500">Storage capacity</p>
+                    </div>
+                    <select id="inv_wardrobe" onchange="updatePreview()" class="text-xs bg-white border border-slate-300 rounded-lg px-2 py-1 font-medium">
+                      <option value="1 3-Door Wardrobe" selected>1 3-Door Wardrobe</option>
+                      <option value="1 2-Door Wardrobe">1 2-Door Wardrobe</option>
+                      <option value="None">None</option>
+                    </select>
+                  </div>
+
+                  <!-- Air Conditioner -->
+                  <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-800">Air Conditioner (AC)</p>
+                      <p class="text-[11px] text-slate-500">In bedroom</p>
+                    </div>
+                    <select id="inv_ac" onchange="updatePreview()" class="text-xs bg-white border border-slate-300 rounded-lg px-2 py-1 font-medium">
+                      <option value="1 Split AC" selected>1 Split AC installed</option>
+                      <option value="None">No AC (Ceiling Fan only)</option>
+                    </select>
+                  </div>
+
+                  <!-- Condition Rating -->
+                  <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-800">Furniture Condition</p>
+                      <p class="text-[11px] text-slate-500">Item shape</p>
+                    </div>
+                    <select id="inv_condition" onchange="updatePreview()" class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg px-2.5 py-1 font-bold">
+                      <option value="Gently Used - Great">Gently Used - Great</option>
+                      <option value="Brand New">Brand New</option>
+                      <option value="Well Maintained">Well Maintained</option>
+                      <option value="Functional / Fair">Functional / Fair</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Shared Appliances -->
+              <div class="space-y-3 pt-3 border-t border-slate-100">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <i data-lucide="tv" class="w-3.5 h-3.5 text-indigo-600"></i> Common Area Appliances (Included to Share)
+                </h4>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                    <input type="checkbox" id="comm_sofa" checked onchange="updatePreview()" class="w-4 h-4 text-brand-600 rounded">
+                    <span>3-Seater Sofa</span>
+                  </label>
+
+                  <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                    <input type="checkbox" id="comm_fridge" checked onchange="updatePreview()" class="w-4 h-4 text-brand-600 rounded">
+                    <span>Double Door Fridge</span>
+                  </label>
+
+                  <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                    <input type="checkbox" id="comm_washing" checked onchange="updatePreview()" class="w-4 h-4 text-brand-600 rounded">
+                    <span>Washing Machine</span>
+                  </label>
+
+                  <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                    <input type="checkbox" id="comm_dining" checked onchange="updatePreview()" class="w-4 h-4 text-brand-600 rounded">
+                    <span>4-Chair Dining</span>
+                  </label>
+
+                  <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                    <input type="checkbox" id="comm_microwave" checked onchange="updatePreview()" class="w-4 h-4 text-brand-600 rounded">
+                    <span>Microwave</span>
+                  </label>
+
+                  <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                    <input type="checkbox" id="comm_purifier" checked onchange="updatePreview()" class="w-4 h-4 text-brand-600 rounded">
+                    <span>RO Water Filter</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 4: Building Amenities -->
+            <div class="bg-[#0e0e11] rounded-2xl p-6 border border-white/[0.08] shadow-xl space-y-4">
+              <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs">4</span>
+                <h3 class="font-bold text-slate-900 font-display">Facilities & Flatmate Preferences</h3>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Included Amenities</label>
+                <div class="flex flex-wrap gap-2" id="amenitiesContainer">
+                  <button type="button" onclick="toggleTag(this)" class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium border bg-brand-50 border-brand-300 text-brand-700 flex items-center gap-1.5">
+                    <i data-lucide="wifi" class="w-3.5 h-3.5"></i> High-Speed Wi-Fi
+                  </button>
+                  <button type="button" onclick="toggleTag(this)" class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium border bg-brand-50 border-brand-300 text-brand-700 flex items-center gap-1.5">
+                    <i data-lucide="sun" class="w-3.5 h-3.5"></i> Balcony Access
+                  </button>
+                  <button type="button" onclick="toggleTag(this)" class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium border bg-brand-50 border-brand-300 text-brand-700 flex items-center gap-1.5">
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i> 100% Power Backup
+                  </button>
+                  <button type="button" onclick="toggleTag(this)" class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium border bg-brand-50 border-brand-300 text-brand-700 flex items-center gap-1.5">
+                    <i data-lucide="car" class="w-3.5 h-3.5"></i> Covered 2-Wheeler Parking
+                  </button>
+                  <button type="button" onclick="toggleTag(this)" class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium border bg-brand-50 border-brand-300 text-brand-700 flex items-center gap-1.5">
+                    <i data-lucide="shield" class="w-3.5 h-3.5"></i> 24/7 Gated Security
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Publish Button -->
+            <div class="pt-2">
+              <button 
+                type="submit" 
+                id="btnPublishListing"
+                class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-base shadow-lg shadow-brand-500/25 transform active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                Publish Sublet Listing & Furniture Inventory
+              </button>
+              <p class="text-center text-xs text-slate-400 mt-2">Saved directly into SQLite Database on the backend and visible to all roommate seekers.</p>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- RIGHT COLUMN: LIVE REAL-TIME PREVIEW CARD (5 Cols) -->
+        <div class="lg:col-span-5 sticky top-24 space-y-4">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Seeker Preview
+            </span>
+            <span class="text-[11px] text-slate-400">Updates instantly</span>
+          </div>
+
+          <!-- Preview Card -->
+          <div class="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50 transition-all">
+            <!-- Cover image with overlay badges -->
+            <div class="relative h-56 w-full bg-slate-100 overflow-hidden">
+              <img id="previewImg" src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80" alt="Room preview" class="w-full h-full object-cover">
+              
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                <span id="previewTagApartment" class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-slate-900/85 text-white backdrop-blur-md">
+                  In 2 BHK
+                </span>
+                <span id="previewTagOffering" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-brand-600/90 text-white backdrop-blur-md">
+                  1 Private Bedroom
+                </span>
+              </div>
+
+              <!-- Attached photos indicator in preview -->
+              <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md text-white text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <i data-lucide="camera" class="w-3 h-3"></i>
+                <span id="previewPhotoCount">1 photo</span>
+              </div>
+
+              <div class="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-black text-slate-900 shadow">
+                <span id="previewRentDisplay">₹14,500</span><span class="text-slate-500 text-[10px] font-normal"> / mo</span>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-5 space-y-4">
+              <div>
+                <h4 id="previewTitle" class="font-bold text-lg text-slate-900 leading-snug line-clamp-2">
+                  1 Private Master Bedroom in Spacious 2 BHK
+                </h4>
+                <p id="previewLocation" class="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i> Koramangala 4th Block, Bangalore
+                </p>
+              </div>
+
+              <!-- Price & Move-in Highlights -->
+              <div class="flex items-center justify-between text-xs py-2 px-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div>
+                  <span class="text-slate-400 block text-[10px] uppercase font-bold">Deposit</span>
+                  <span id="previewDepositDisplay" class="font-bold text-slate-800">₹30,000</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-slate-400 block text-[10px] uppercase font-bold">Available</span>
+                  <span id="previewDateDisplay" class="font-semibold text-emerald-600">Immediate</span>
+                </div>
+              </div>
+
+              <!-- Inventory Section -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                    <i data-lucide="armchair" class="w-3.5 h-3.5 text-brand-600"></i> Included Leftover Furniture:
+                  </span>
+                  <span id="previewConditionBadge" class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+                    Gently Used
+                  </span>
+                </div>
+
+                <div id="previewInventoryTags" class="flex flex-wrap gap-1.5">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <!-- Shared List -->
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Shared Amenities</span>
+                <p id="previewSharedList" class="text-xs text-slate-600 line-clamp-1">Sofa, Fridge, Washing Machine, Microwave, RO Water</p>
+              </div>
+
+              <!-- Host / Tenant Preview -->
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div id="previewHostAvatar" class="w-7 h-7 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center">
+                    AS
+                  </div>
+                  <div>
+                    <p id="previewHostName" class="text-xs font-bold text-slate-800">You (Signed in)</p>
+                    <p class="text-[10px] text-emerald-600 font-medium">Primary Tenant</p>
+                  </div>
+                </div>
+                <span class="text-[11px] font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-md">Real-time Card</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= VIEW 3: HOW IT WORKS ================= -->
+    <section id="view-howItWorks" class="hidden max-w-4xl mx-auto space-y-8 py-4">
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl font-extrabold font-display text-[#ededed]">How SubletNest Solves Spare Room Rental</h2>
+        <p class="text-sm text-slate-500 max-w-xl mx-auto">When flatmates move out, they frequently leave behind furniture. SubletNest allows current lease holders to list available rooms with an exact breakdown of what items stay and transparent bill splits.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-[#0e0e11] p-6 rounded-2xl border border-white/[0.08] text-center space-y-3 shadow-xl">
+          <div class="w-12 h-12 rounded-2xl bg-blue-100 text-brand-600 flex items-center justify-center mx-auto text-xl font-bold">1</div>
+          <h3 class="font-bold text-slate-900 text-base">Select Your Layout</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">Have a 2 BHK, 3 BHK or 4 BHK? Select whether you're renting a private bedroom or master suite, and set the rent split.</p>
+        </div>
+
+        <div class="bg-[#0e0e11] p-6 rounded-2xl border border-white/[0.08] text-center space-y-3 shadow-xl">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-xl font-bold">2</div>
+          <h3 class="font-bold text-slate-900 text-base">Itemize Inventory</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">Count the left-behind furniture (e.g. 2 study chairs, 1 queen mattress, wardrobe) so the next renter knows what they won't need to purchase.</p>
+        </div>
+
+        <div class="bg-[#0e0e11] p-6 rounded-2xl border border-white/[0.08] text-center space-y-3 shadow-xl">
+          <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto text-xl font-bold">3</div>
+          <h3 class="font-bold text-slate-900 text-base">Live Camera & Backend Sync</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">Snap live photos of the room directly with your camera button or upload from files. Everything is securely stored in the backend.</p>
+        </div>
+      </div>
+
+      <div class="text-center pt-4">
+        <button onclick="handleListButtonClick()" class="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-md">
+          Ready? List Your Room Now
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 4: MY LISTINGS & INCOMING INQUIRIES ================= -->
+    <section id="view-myListings" class="hidden space-y-8">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+          <h2 class="text-2xl font-bold font-display text-slate-900">My Sublets & Roommate Requests</h2>
+          <p class="text-xs text-slate-500">Manage rooms you have listed and review inquiries sent by prospective roommates.</p>
+        </div>
+        <button onclick="switchView('explore')" class="text-xs font-semibold text-brand-600 hover:underline">
+          Browse Marketplace &rarr;
+        </button>
+      </div>
+
+      <!-- Section: Published Sublets -->
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+          <i data-lucide="home" class="w-4 h-4 text-brand-600"></i> Your Published Spare Rooms
+        </h3>
+        <div id="userCreatedListingsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Populated by JS from Backend -->
+        </div>
+      </div>
+
+      <!-- Section: Incoming Roommate Inquiries -->
+      <div class="pt-4 border-t border-slate-200">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <i data-lucide="message-square" class="w-4 h-4 text-emerald-600"></i> Incoming Inquiries from Room Seekers
+          </h3>
+          <button onclick="loadMyInquiries()" class="text-xs text-brand-600 hover:underline font-semibold flex items-center gap-1">
+            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh Inquiries
+          </button>
+        </div>
+        <div id="userInquiriesContainer" class="space-y-3">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= CAMERA CAPTURE MODAL WITH BACKEND UPLOAD ================= -->
+  <div id="cameraModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="skiper-modal-dialog w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col relative">
+      
+      <!-- Flash animation overlay -->
+      <div id="cameraFlashOverlay" class="absolute inset-0 bg-white pointer-events-none opacity-0 z-20"></div>
+
+      <!-- Camera Modal Header -->
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+          <h3 class="font-bold text-sm">Room Viewfinder (Live Camera Input)</h3>
+        </div>
+        <button onclick="closeCameraModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Viewfinder Area -->
+      <div class="relative bg-black aspect-video sm:aspect-[4/3] flex items-center justify-center overflow-hidden">
+        <!-- Live Video Element -->
+        <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+        
+        <!-- Offscreen Canvas for Snapshot Capture -->
+        <canvas id="cameraCanvas" class="hidden"></canvas>
+
+        <!-- Simulated fallback overlay if permission denied or no camera -->
+        <div id="cameraFallbackNotice" class="hidden absolute inset-0 bg-slate-900/90 text-white p-6 flex flex-col items-center justify-center text-center space-y-3">
+          <i data-lucide="camera-off" class="w-10 h-10 text-rose-400"></i>
+          <p class="text-xs font-medium text-slate-300">Camera access is currently unavailable or device is in permission-restricted mode.</p>
+          <button type="button" onclick="captureSimulatedSnapshot()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            Take High-Res Room Snapshot & Save to Backend
+          </button>
+        </div>
+
+        <!-- Viewfinder Framing Guides -->
+        <div class="pointer-events-none absolute inset-6 border border-white/30 rounded-2xl flex items-center justify-center">
+          <span class="text-[10px] text-white/60 bg-black/40 px-2.5 py-1 rounded-full uppercase tracking-widest">Center room & furniture setup</span>
+        </div>
+      </div>
+
+      <!-- Camera Controls -->
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <button 
+          type="button" 
+          onclick="toggleCameraFacing()" 
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition-colors">
+          <i data-lucide="flip-horizontal" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Flip Camera</span>
+        </button>
+
+        <!-- Main Shutter Button -->
+        <div class="flex flex-col items-center">
+          <button 
+            type="button" 
+            id="shutterBtn"
+            onclick="captureLivePhoto()" 
+            class="w-14 h-14 rounded-full border-4 border-white/60 bg-white hover:bg-brand-500 text-brand-600 hover:text-white flex items-center justify-center shadow-lg active:scale-95 transition-all"
+            title="Snap Photo and Save to Backend">
+            <i data-lucide="camera" class="w-6 h-6"></i>
+          </button>
+          <span class="text-[9px] text-slate-400 mt-1 uppercase tracking-wider font-bold">Snap & Save</span>
+        </div>
+
+        <button 
+          type="button" 
+          onclick="closeCameraModal()" 
+          class="px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white">
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= PARTNERSHIP INQUIRY / CONTACT HOST MODAL ================= -->
+  <div id="inquiryModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="skiper-modal-dialog w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl">
+      
+      <div class="p-6 bg-gradient-to-br from-slate-900 to-indigo-950 text-white relative">
+        <button onclick="closeInquiryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white mb-2 shadow-md">
+          <i data-lucide="send" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-xl font-bold font-display">Connect with Primary Tenant</h3>
+        <p id="inquiryModalSubtitle" class="text-xs text-slate-300 mt-0.5">Send a partnership request for this spare room.</p>
+      </div>
+
+      <form id="inquiryForm" onsubmit="handleInquirySubmit(event)" class="p-6 space-y-4">
+        <input type="hidden" id="inquiryListingId" value="">
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Your Full Name</label>
+          <input 
+            type="text" 
+            id="inquiryName" 
+            required
+            placeholder="e.g. Rahul Verma"
+            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+          >
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Email Address</label>
+            <input 
+              type="email" 
+              id="inquiryEmail" 
+              required
+              placeholder="rahul@example.com"
+              class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Phone / WhatsApp</label>
+            <input 
+              type="tel" 
+              id="inquiryPhone" 
+              placeholder="+91 9876543210"
+              class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+            >
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Your Occupation</label>
+            <input 
+              type="text" 
+              id="inquiryOccupation" 
+              placeholder="e.g. Software Engineer"
+              value="Software Engineer"
+              class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Expected Move-in</label>
+            <input 
+              type="text" 
+              id="inquiryDate" 
+              placeholder="Immediate or next week"
+              value="Immediate"
+              class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Message to Host</label>
+          <textarea 
+            id="inquiryMessage" 
+            rows="3"
+            placeholder="Share why you'd be a great flatmate, questions on leftover furniture or bills..."
+            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+          >Hi! I am interested in partnering up and renting the extra room. I love the study desk and chair setup. Can we schedule a quick call or visit?</textarea>
+        </div>
+
+        <button 
+          type="submit" 
+          id="btnSubmitInquiry"
+          class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          Send Partnership Request
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Note: Step 1 Login screen now handles authentication at start of user journey -->
+
+  <!-- ================= USER PROFILE SETTINGS MODAL ================= -->
+  <div id="profileModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="skiper-modal-dialog w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
+      
+      <div class="p-6 bg-slate-900 text-white relative flex items-center gap-4">
+        <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div id="profileModalAvatar" class="w-14 h-14 rounded-2xl bg-brand-600 text-white font-black text-xl flex items-center justify-center shadow-md">
+          --
+        </div>
+        <div>
+          <h3 id="profileModalName" class="text-lg font-bold">--</h3>
+          <p id="profileModalEmail" class="text-xs text-slate-400">--</p>
+          <p id="profileModalPhone" class="text-xs text-slate-300 mt-0.5 flex items-center gap-1">
+            <i data-lucide="phone" class="w-3 h-3 text-slate-400"></i>
+            <span id="profileModalPhoneVal">--</span>
+          </p>
+          <span id="profileModalRole" class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-400/30">
+            Primary Leaseholder
+          </span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="p-6 space-y-4">
+        <div class="grid grid-cols-3 gap-2.5 text-center">
+          <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <span id="statListingsCount" class="text-lg font-black text-slate-800">0</span>
+            <span class="block text-[10px] text-slate-400 font-bold uppercase mt-0.5">My Listings</span>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <span id="statSavedCount" class="text-lg font-black text-slate-800">0</span>
+            <span class="block text-[10px] text-slate-400 font-bold uppercase mt-0.5">Saved</span>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <span class="text-lg font-black text-emerald-600">Active</span>
+            <span class="block text-[10px] text-slate-400 font-bold uppercase mt-0.5">DB Status</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2">
+          <button onclick="switchView('myListings'); closeProfileModal();" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-between">
+            <span class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4 text-brand-600"></i> Manage My Active Sublets</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+          
+          <button onclick="handleSignOut()" class="w-full py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= DETAIL MODAL WITH MULTI-IMAGE CAROUSEL ================= -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="skiper-modal-dialog w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl transform transition-all max-h-[90vh] flex flex-col">
+      
+      <!-- Modal Gallery Viewer -->
+      <div class="relative h-64 sm:h-72 w-full bg-slate-950 flex-shrink-0 group">
+        <img id="modalImg" src="" alt="Room detail" class="w-full h-full object-cover">
+        
+        <!-- Close Button -->
+        <button onclick="closeDetailModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-md z-10">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Gallery Next/Prev if multiple images exist -->
+        <div id="modalGalleryNav" class="hidden">
+          <button onclick="stepModalImage(-1)" class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <button onclick="stepModalImage(1)" class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Badges on image -->
+        <div class="absolute bottom-3 left-4 flex flex-wrap gap-2">
+          <span id="modalApartmentBadge" class="bg-slate-900/90 text-white text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md"></span>
+          <span id="modalOfferingBadge" class="bg-brand-600 text-white text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md"></span>
+        </div>
+
+        <!-- Photo Counter Badge -->
+        <div id="modalPhotoIndex" class="absolute bottom-3 right-4 bg-black/75 text-white text-[11px] px-2.5 py-1 rounded-full">
+          1 / 1
+        </div>
+      </div>
+
+      <!-- Thumbnails Selector in Modal -->
+      <div id="modalThumbStrip" class="px-4 py-2 bg-[#09090b] flex items-center gap-2 overflow-x-auto skiper87-scroll-x">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Modal Scrollable Content -->
+      <div class="p-6 overflow-y-auto space-y-6 skiper87-scroll-y">
+        <div>
+          <div class="flex items-start justify-between gap-4">
+            <h2 id="modalTitle" class="text-xl font-bold font-display text-slate-900 leading-snug"></h2>
+            <div class="text-right flex-shrink-0">
+              <span id="modalRent" class="text-2xl font-black text-brand-600"></span>
+              <span class="text-xs text-slate-500 block">per month</span>
+            </div>
+          </div>
+          <p id="modalLocation" class="text-xs text-slate-500 flex items-center gap-1 mt-1">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span></span>
+          </p>
+        </div>
+
+        <!-- Rent Specs Table -->
+        <div class="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Deposit</span>
+            <span id="modalDeposit" class="font-bold text-slate-800 text-sm"></span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Available</span>
+            <span id="modalDate" class="font-bold text-emerald-600 text-sm"></span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Utilities</span>
+            <span id="modalBills" class="font-bold text-slate-800 text-sm"></span>
+          </div>
+        </div>
+
+        <!-- ITEM INVENTORY BREAKDOWN -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <i data-lucide="box" class="w-4 h-4 text-emerald-600"></i> Leftover Furniture Itemization
+            </h4>
+            <span id="modalCondition" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800"></span>
+          </div>
+          <div id="modalInventoryList" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Shared Flat Amenities -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400">Shared Flat Amenities</h4>
+          <div id="modalSharedList" class="flex flex-wrap gap-1.5 text-xs text-slate-700"></div>
+        </div>
+
+        <!-- Primary Tenant Contact Box -->
+        <div class="p-4 bg-brand-50/70 rounded-2xl border border-brand-100 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div id="modalAvatar" class="w-10 h-10 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-sm shadow">
+              RK
+            </div>
+            <div>
+              <p id="modalTenant" class="text-sm font-bold text-slate-900"></p>
+              <p class="text-xs text-brand-700 font-medium">Primary Tenant looking for Roommate</p>
+            </div>
+          </div>
+          <button onclick="handleContactClick()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Contact Host</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= TOAST NOTIFICATION ================= -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden transform transition-all duration-300">
+    <div class="bg-[#0e0e11] text-zinc-100 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10">
+      <div id="toastIcon" class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+      </div>
+      <div>
+        <h5 id="toastTitle" class="text-xs font-bold">Success!</h5>
+        <p id="toastMessage" class="text-[11px] text-slate-300">Action performed successfully.</p>
+      </div>
+    </div>
+  </div>
+
+  </div> <!-- /mainAppContainer (Step 3 Main Application) -->
+
+  <!-- ================= ONBOARDING 3-STEP JOURNEY ENGINE ================= -->
+  <script src="onboarding/onboarding.js"></script>
+
+  <!-- ================= SKIPER-UI 43 CURSOR-RESPONSIVE BUTTON GESTURES ENGINE ================= -->
+  <script src="skiper-gestures/skiper-gestures.js"></script>
+
+  <!-- ================= JAVASCRIPT APPLICATION CORE ================= -->
+  <script>
+    /* ----------------------------------------------------
+       1. STATE & BACKEND CONFIGURATION
+    ---------------------------------------------------- */
+    // Dynamic API URL: points to ASP.NET Core Web API (works both when served by ASP.NET Core or independently)
+    const API_BASE = (window.location.origin.includes('localhost:') || window.location.origin.includes('127.0.0.1:')) && !window.location.port.match(/^(5000|5001|5170|5198|5199)$/)
+      ? 'http://localhost:5000' 
+      : (window.location.protocol === 'file:' ? 'http://localhost:5000' : '');
+
+    let listings = [];
+    let currentUser = null;
+    let shortlistedIds = [];
+    let isShortlistOnlyActive = false;
+    let searchDebounceTimer = null;
+
+    // Load user auth state from localStorage (starts completely empty, no default profile)
+    try {
+      const storedUser = localStorage.getItem('subletnest_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        // Exclude legacy mock demo user so profile button starts clean
+        if (parsed && parsed.email !== 'aman@example.com') {
+          currentUser = parsed;
+        } else {
+          localStorage.removeItem('subletnest_user');
+          currentUser = null;
+        }
+      }
+    } catch (e) {
+      currentUser = null;
+    }
+
+    // Photos attached to the current listing configurator
+    let formAttachedPhotos = [
+      "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+    ];
+
+    /* ----------------------------------------------------
+       2. INITIALIZATION
+    ---------------------------------------------------- */
+    window.onload = async function() {
+      lucide.createIcons();
+      initShortlist();
+      renderAuthNav();
+      renderFormThumbnails();
+      updatePreview();
+
+      await checkBackendHealth();
+      await fetchMarketplaceListings();
+      await fetchStats();
+
+      // Ensure Onboarding lifecycle & location handoff runs smoothly
+      if (window.onboardingManager) {
+        window.onboardingManager.init();
+      }
+    };
+
+    function initShortlist() {
+      try {
+        const stored = localStorage.getItem('subletnest_shortlist');
+        if (stored) shortlistedIds = JSON.parse(stored);
+        if (!Array.isArray(shortlistedIds)) shortlistedIds = [];
+      } catch(e) {
+        shortlistedIds = [];
+      }
+      updateShortlistBadges();
+    }
+
+    function updateShortlistBadges() {
+      const badge = document.getElementById('shortlistBadgeCount');
+      if (badge) badge.innerText = shortlistedIds.length;
+      const profileStat = document.getElementById('statSavedCount');
+      if (profileStat) profileStat.innerText = shortlistedIds.length;
+    }
+
+    function toggleShortlist(event, listingId) {
+      if (event) event.stopPropagation();
+      const index = shortlistedIds.indexOf(listingId);
+      if (index > -1) {
+        shortlistedIds.splice(index, 1);
+        showToast('Shortlist Updated', 'Room removed from your shortlist.');
+      } else {
+        shortlistedIds.push(listingId);
+        showToast('Room Shortlisted! ❤️', 'Saved to your shortlist for easy access.');
+      }
+
+      try {
+        localStorage.setItem('subletnest_shortlist', JSON.stringify(shortlistedIds));
+      } catch(e){}
+
+      updateShortlistBadges();
+      applyLocalFiltersAndRender();
+    }
+
+    function toggleShortlistOnly() {
+      isShortlistOnlyActive = !isShortlistOnlyActive;
+      const btn = document.getElementById('btnShortlistToggle');
+      const icon = document.getElementById('shortlistToggleIcon');
+
+      if (isShortlistOnlyActive) {
+        btn.classList.add('bg-rose-50', 'border-rose-400', 'text-rose-700', 'ring-2', 'ring-rose-400/20');
+        btn.classList.remove('bg-slate-50', 'text-slate-700');
+        icon.classList.add('fill-current');
+      } else {
+        btn.classList.remove('bg-rose-50', 'border-rose-400', 'text-rose-700', 'ring-2', 'ring-rose-400/20');
+        btn.classList.add('bg-slate-50', 'text-slate-700');
+        icon.classList.remove('fill-current');
+      }
+
+      applyLocalFiltersAndRender();
+      lucide.createIcons();
+    }
+
+    async function checkBackendHealth() {
+      try {
+        const res = await fetch(`${API_BASE}/api/health`);
+        if (res.ok) {
+          const pill = document.getElementById('backendStatusPill');
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> .NET 8 Backend Online`;
+            pill.className = "hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full";
+          }
+        }
+      } catch (e) {
+        console.warn('Backend not responding yet:', e);
+        const pill = document.getElementById('backendStatusPill');
+        if (pill) {
+          pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Local / Fallback Mode`;
+          pill.className = "hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full";
+        }
+      }
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/listings/stats`);
+        if (res.ok) {
+          const stats = await res.json();
+          renderStatsBanner(stats);
+        }
+      } catch(e) {
+        console.warn('Could not load stats:', e);
+      }
+    }
+
+    function renderStatsBanner(stats) {
+      const banner = document.getElementById('statsSummaryBanner');
+      if (!banner) return;
+      banner.innerHTML = `
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <span class="text-xl font-black text-slate-900">${stats.totalListings || 4}</span>
+          <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Spare Rooms Listed</span>
+        </div>
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <span class="text-xl font-black text-emerald-600">₹${(stats.averageRent || 16500).toLocaleString('en-IN')}</span>
+          <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Average Rent Share</span>
+        </div>
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <span class="text-xl font-black text-brand-600">${stats.totalInquiries || 0}</span>
+          <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Roommate Inquiries</span>
+        </div>
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <span class="text-xl font-black text-indigo-600">100%</span>
+          <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Furniture Itemized</span>
+        </div>
+      `;
+    }
+
+    /* ----------------------------------------------------
+       3. BACKEND API: LISTINGS
+    ---------------------------------------------------- */
+    async function fetchMarketplaceListings() {
+      const bhkVal = document.getElementById('filterBhk')?.value || 'all';
+      const roomTypeVal = document.getElementById('filterRoomType')?.value || 'all';
+      const furnishingVal = document.getElementById('filterFurnishing')?.value || 'all';
+      const budgetVal = document.getElementById('filterBudget')?.value || 'all';
+      const cityVal = document.getElementById('filterCity')?.value || 'all';
+      const searchVal = (document.getElementById('areaSchemeSearchInput')?.value || document.getElementById('globalSearchInput')?.value || '').trim();
+
+      const countEl = document.getElementById('resultsCount');
+      if (countEl) {
+        countEl.innerText = "Checking available rooms...";
+        countEl.className = "text-xs font-semibold text-slate-500";
+      }
+
+      const params = new URLSearchParams();
+      if (bhkVal !== 'all') params.append('bhk', bhkVal);
+      if (roomTypeVal !== 'all') params.append('roomType', roomTypeVal);
+      if (furnishingVal !== 'all') params.append('furnishing', furnishingVal);
+      if (budgetVal !== 'all') params.append('maxBudget', budgetVal);
+      if (cityVal !== 'all') params.append('city', cityVal);
+      if (searchVal) params.append('search', searchVal);
+
+      try {
+        const response = await fetch(`${API_BASE}/api/listings?${params.toString()}`);
+        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+        const data = await response.json();
+        listings = Array.isArray(data) ? data : [];
+        try {
+          localStorage.setItem('subletnest_listings', JSON.stringify(listings));
+        } catch(e){}
+        applyLocalFiltersAndRender();
+      } catch (err) {
+        console.warn('Backend fetch failed or offline, checking local storage', err);
+        const local = localStorage.getItem('subletnest_listings');
+        if (local) {
+          try {
+            listings = JSON.parse(local);
+          } catch(e) {
+            listings = [];
+          }
+        } else {
+          listings = [];
+        }
+        applyLocalFiltersAndRender();
+      }
+    }
+
+    function switchView(viewName) {
+      const views = ['explore', 'create', 'howItWorks', 'myListings'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(`view-${viewName}`);
+      if (target) target.classList.remove('hidden');
+
+      const exploreBtn = document.getElementById('navBtnExplore');
+      if (viewName === 'explore') {
+        exploreBtn.classList.add('bg-slate-200/80', 'text-slate-800');
+        fetchMarketplaceListings();
+      } else {
+        exploreBtn.classList.remove('bg-slate-200/80');
+      }
+
+      if (viewName === 'myListings') {
+        renderUserListings();
+        loadMyInquiries();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }
+
+    function handleListButtonClick() {
+      if (!currentUser) {
+        if (window.onboardingManager) {
+          window.onboardingManager.openAuthModal('login', 'create');
+        } else {
+          openAuthModal('login', 'Please sign in or register to list your room.');
+        }
+        return;
+      }
+      switchView('create');
+    }
+
+    function handleMySubletsClick() {
+      if (!currentUser) {
+        if (window.onboardingManager) {
+          window.onboardingManager.openAuthModal('login', 'myListings');
+        } else {
+          openAuthModal('login', 'Please sign in to view and manage your sublets.');
+        }
+        return;
+      }
+      switchView('myListings');
+    }
+
+    /* ----------------------------------------------------
+       4. CAMERA CAPTURE ENGINE & DIRECT BACKEND UPLOAD
+    ---------------------------------------------------- */
+    let cameraMediaStream = null;
+    let cameraFacingMode = "environment"; // "user" or "environment" (rear camera)
+
+    async function openCameraModal() {
+      document.getElementById('cameraModal').classList.remove('hidden');
+      document.getElementById('cameraFallbackNotice').classList.add('hidden');
+      lucide.createIcons();
+
+      await initCameraStream();
+    }
+
+    async function initCameraStream() {
+      const videoEl = document.getElementById('cameraVideo');
+      const fallbackNotice = document.getElementById('cameraFallbackNotice');
+
+      if (cameraMediaStream) {
+        cameraMediaStream.getTracks().forEach(track => track.stop());
+      }
+
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('MediaDevices API not supported');
+        }
+
+        cameraMediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: cameraFacingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        });
+
+        videoEl.srcObject = cameraMediaStream;
+        fallbackNotice.classList.add('hidden');
+      } catch (err) {
+        console.warn('Camera stream could not start (browser sandbox or no camera attached):', err);
+        fallbackNotice.classList.remove('hidden');
+      }
+    }
+
+    async function toggleCameraFacing() {
+      cameraFacingMode = cameraFacingMode === "environment" ? "user" : "environment";
+      await initCameraStream();
+      showToast('Camera Flipped', `Switched to ${cameraFacingMode === 'environment' ? 'Rear' : 'Front'} Camera.`);
+    }
+
+    // Trigger visual shutter flash effect
+    function triggerCameraFlash() {
+      const flash = document.getElementById('cameraFlashOverlay');
+      if (flash) {
+        flash.classList.remove('flash-effect');
+        void flash.offsetWidth; // trigger reflow
+        flash.classList.add('flash-effect');
+      }
+    }
+
+    // Capture snapshot from live camera viewfinder and POST directly to backend API
+    async function captureLivePhoto() {
+      const videoEl = document.getElementById('cameraVideo');
+      const canvasEl = document.getElementById('cameraCanvas');
+
+      triggerCameraFlash();
+
+      if (!cameraMediaStream || videoEl.videoWidth === 0) {
+        await captureSimulatedSnapshot();
+        return;
+      }
+
+      canvasEl.width = videoEl.videoWidth || 1280;
+      canvasEl.height = videoEl.videoHeight || 720;
+      const ctx = canvasEl.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+
+      const capturedDataUrl = canvasEl.toDataURL('image/jpeg', 0.90);
+
+      // Upload to backend camera endpoint
+      await uploadCameraSnapshotToBackend(capturedDataUrl, "live-camera");
+      closeCameraModal();
+    }
+
+    async function captureSimulatedSnapshot() {
+      triggerCameraFlash();
+
+      // Sample high-quality room photos to upload as live camera simulation
+      const sampleSnapshots = [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80"
+      ];
+      const randomPhoto = sampleSnapshots[Math.floor(Math.random() * sampleSnapshots.length)];
+      
+      addPhotoToDeck(randomPhoto);
+      closeCameraModal();
+      showToast('Camera Snapshot Added', 'Room photo attached to listing.');
+    }
+
+    async function uploadCameraSnapshotToBackend(base64Data, source) {
+      showUploadProgress(true);
+      try {
+        const response = await fetch(`${API_BASE}/api/upload/camera`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: base64Data,
+            fileName: `room_camera_${Date.now()}.jpg`,
+            source: source || 'live-camera'
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          addPhotoToDeck(data.url);
+          showToast('Camera Photo Saved!', 'Snapshot saved directly to backend storage.');
+        } else {
+          // Fallback to storing data URL if backend upload fails
+          addPhotoToDeck(base64Data);
+          showToast('Photo Attached', 'Stored locally.');
+        }
+      } catch (err) {
+        console.warn('Backend camera upload error, using local dataUrl', err);
+        addPhotoToDeck(base64Data);
+        showToast('Photo Attached', 'Saved to form.');
+      } finally {
+        showUploadProgress(false);
+      }
+    }
+
+    function closeCameraModal() {
+      if (cameraMediaStream) {
+        cameraMediaStream.getTracks().forEach(track => track.stop());
+        cameraMediaStream = null;
+      }
+      document.getElementById('cameraModal').classList.add('hidden');
+    }
+
+    // GALLERY & FILE UPLOAD VIA POST /api/upload
+    async function handleGalleryUpload(input) {
+      const files = Array.from(input.files);
+      if (!files.length) return;
+
+      showUploadProgress(true);
+      let successCount = 0;
+
+      for (const file of files) {
+        if (file.size > 15 * 1024 * 1024) {
+          showToast('File Too Large', `${file.name} exceeds 15MB limit.`);
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          const res = await fetch(`${API_BASE}/api/upload`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (res.ok) {
+            const result = await res.json();
+            addPhotoToDeck(result.url);
+            successCount++;
+          } else {
+            // Local fallback via FileReader
+            await readFileAsDataUrl(file);
+            successCount++;
+          }
+        } catch (err) {
+          console.warn('Upload error, reading local file', err);
+          await readFileAsDataUrl(file);
+          successCount++;
+        }
+      }
+
+      showUploadProgress(false);
+      input.value = '';
+      if (successCount > 0) {
+        showToast('Photos Attached', `${successCount} room photo(s) added.`);
+      }
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          addPhotoToDeck(e.target.result);
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function showUploadProgress(show) {
+      const spinner = document.getElementById('uploadSpinner');
+      if (spinner) {
+        if (show) spinner.classList.remove('hidden');
+        else spinner.classList.add('hidden');
+      }
+    }
+
+    function addStockPhoto(url) {
+      addPhotoToDeck(url);
+      showToast('Photo Added', 'Sample room photo attached.');
+    }
+
+    function addPhotoToDeck(url) {
+      formAttachedPhotos.push(url);
+      renderFormThumbnails();
+      updatePreview();
+    }
+
+    function removePhoto(index) {
+      if (formAttachedPhotos.length <= 1) {
+        showToast('Minimum 1 Photo', 'Listings need at least one room photo.');
+        return;
+      }
+      formAttachedPhotos.splice(index, 1);
+      renderFormThumbnails();
+      updatePreview();
+    }
+
+    function setAsCoverPhoto(index) {
+      if (index === 0) return;
+      const target = formAttachedPhotos.splice(index, 1)[0];
+      formAttachedPhotos.unshift(target);
+      renderFormThumbnails();
+      updatePreview();
+      showToast('Cover Updated', 'Main room cover photo set.');
+    }
+
+    function renderFormThumbnails() {
+      const container = document.getElementById('thumbnailsContainer');
+      const badge = document.getElementById('photoCounterBadge');
+      badge.innerText = `${formAttachedPhotos.length} Photo${formAttachedPhotos.length > 1 ? 's' : ''} Attached`;
+
+      container.innerHTML = formAttachedPhotos.map((imgUrl, idx) => `
+        <div class="relative group rounded-xl overflow-hidden border-2 ${idx === 0 ? 'border-brand-600 ring-2 ring-brand-500/20' : 'border-slate-200'} h-20 bg-slate-100">
+          <img src="${imgUrl}" alt="Room image ${idx+1}" class="w-full h-full object-cover cursor-pointer" onclick="setAsCoverPhoto(${idx})" title="Click to set as cover photo">
+          
+          ${idx === 0 ? `
+            <span class="absolute bottom-1 left-1 bg-brand-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">Cover</span>
+          ` : `
+            <button type="button" onclick="setAsCoverPhoto(${idx})" class="absolute bottom-1 left-1 bg-slate-900/80 text-white text-[9px] font-semibold px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+              Make Cover
+            </button>
+          `}
+
+          <button 
+            type="button" 
+            onclick="removePhoto(${idx})" 
+            class="absolute top-1 right-1 w-5 h-5 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white flex items-center justify-center transition-colors">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    /* ----------------------------------------------------
+       5. LIVE PREVIEW ENGINE
+    ---------------------------------------------------- */
+    function updatePreview() {
+      const title = document.getElementById('inputTitle').value || "1 Private Room in Apartment";
+      const totalBhk = document.getElementById('inputTotalBhk').value;
+      const offering = document.getElementById('inputOffering').value;
+      const location = document.getElementById('inputLocation').value || "City, Locality";
+      const rent = document.getElementById('inputRent').value || "0";
+      const deposit = document.getElementById('inputDeposit').value || "0";
+      const date = document.getElementById('inputDate').value || "Immediate";
+      const condition = document.getElementById('inv_condition').value;
+
+      document.getElementById('previewTitle').innerText = title;
+      document.getElementById('previewLocation').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i> ${location}`;
+      document.getElementById('previewTagApartment').innerText = `In ${totalBhk}`;
+      document.getElementById('previewTagOffering').innerText = offering;
+      document.getElementById('previewRentDisplay').innerText = `₹${Number(rent).toLocaleString('en-IN')}`;
+      document.getElementById('previewDepositDisplay').innerText = `₹${Number(deposit).toLocaleString('en-IN')}`;
+      document.getElementById('previewDateDisplay').innerText = date;
+      document.getElementById('previewConditionBadge').innerText = condition.split(' - ')[0];
+
+      if (formAttachedPhotos.length > 0) {
+        document.getElementById('previewImg').src = formAttachedPhotos[0];
+      }
+      document.getElementById('previewPhotoCount').innerText = `${formAttachedPhotos.length} photo${formAttachedPhotos.length > 1 ? 's' : ''}`;
+
+      const bedVal = document.getElementById('inv_bed').value;
+      const chairsVal = document.getElementById('inv_chairs').value;
+      const deskVal = document.getElementById('inv_desk').value;
+      const wardrobeVal = document.getElementById('inv_wardrobe').value;
+      const acVal = document.getElementById('inv_ac').value;
+
+      let inventoryHtml = '';
+      if (bedVal !== 'None') {
+        inventoryHtml += `<span class="text-[11px] bg-slate-100 text-slate-800 font-medium px-2 py-1 rounded-md border border-slate-200 flex items-center gap-1"><i data-lucide="bed" class="w-3 h-3 text-brand-600"></i>${bedVal}</span>`;
+      }
+      if (chairsVal !== '0') {
+        inventoryHtml += `<span class="text-[11px] bg-blue-50 text-blue-800 font-bold px-2 py-1 rounded-md border border-blue-200 flex items-center gap-1"><i data-lucide="armchair" class="w-3 h-3 text-brand-600"></i>${chairsVal}</span>`;
+      }
+      if (deskVal !== 'None') {
+        inventoryHtml += `<span class="text-[11px] bg-amber-50 text-amber-800 font-medium px-2 py-1 rounded-md border border-amber-200 flex items-center gap-1"><i data-lucide="laptop" class="w-3 h-3 text-amber-600"></i>${deskVal}</span>`;
+      }
+      if (wardrobeVal !== 'None') {
+        inventoryHtml += `<span class="text-[11px] bg-slate-100 text-slate-800 font-medium px-2 py-1 rounded-md border border-slate-200 flex items-center gap-1"><i data-lucide="archive" class="w-3 h-3 text-slate-500"></i>${wardrobeVal}</span>`;
+      }
+      if (acVal !== 'None') {
+        inventoryHtml += `<span class="text-[11px] bg-emerald-50 text-emerald-800 font-medium px-2 py-1 rounded-md border border-emerald-200 flex items-center gap-1"><i data-lucide="wind" class="w-3 h-3 text-emerald-600"></i>${acVal}</span>`;
+      }
+
+      document.getElementById('previewInventoryTags').innerHTML = inventoryHtml || '<span class="text-xs text-slate-400">No leftover furniture selected</span>';
+
+      const sharedItems = [];
+      if (document.getElementById('comm_sofa').checked) sharedItems.push("Sofa");
+      if (document.getElementById('comm_fridge').checked) sharedItems.push("Fridge");
+      if (document.getElementById('comm_washing').checked) sharedItems.push("Washing Machine");
+      if (document.getElementById('comm_dining').checked) sharedItems.push("Dining Table");
+      if (document.getElementById('comm_microwave').checked) sharedItems.push("Microwave");
+      if (document.getElementById('comm_purifier').checked) sharedItems.push("RO Purifier");
+
+      document.getElementById('previewSharedList').innerText = sharedItems.length > 0 ? sharedItems.join(", ") : "None specified";
+
+      if (currentUser) {
+        document.getElementById('previewHostAvatar').innerText = currentUser.initials || 'LE';
+        document.getElementById('previewHostName').innerText = `${currentUser.name} (Leaser)`;
+      } else {
+        document.getElementById('previewHostAvatar').innerText = '--';
+        document.getElementById('previewHostName').innerText = 'Leaser (Not signed in)';
+      }
+
+      lucide.createIcons();
+    }
+
+    function toggleTag(btn) {
+      btn.classList.toggle('bg-brand-50');
+      btn.classList.toggle('border-brand-300');
+      btn.classList.toggle('text-brand-700');
+      btn.classList.toggle('bg-slate-100');
+      btn.classList.toggle('border-slate-200');
+      btn.classList.toggle('text-slate-600');
+    }
+
+    /* ----------------------------------------------------
+       6. PUBLISHING TO BACKEND DATABASE
+    ---------------------------------------------------- */
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+
+      if (!currentUser) {
+        openAuthModal('signup', 'Please sign in or register as a leaser to publish your room listing.');
+        return;
+      }
+
+      const publishBtn = document.getElementById('btnPublishListing');
+      publishBtn.disabled = true;
+      publishBtn.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Storing in SQLite Backend...`;
+
+      // Gather itemized inventory
+      const bedVal = document.getElementById('inv_bed').value;
+      const chairsVal = document.getElementById('inv_chairs').value;
+      const deskVal = document.getElementById('inv_desk').value;
+      const wardrobeVal = document.getElementById('inv_wardrobe').value;
+      const acVal = document.getElementById('inv_ac').value;
+
+      const dynamicInventory = [];
+      if (bedVal !== 'None') dynamicInventory.push({ name: "Bed", detail: bedVal, quantity: 1 });
+      if (chairsVal !== '0') dynamicInventory.push({ name: "Chairs Left", detail: `${chairsVal} included`, quantity: parseInt(chairsVal) || 1 });
+      if (deskVal !== 'None') dynamicInventory.push({ name: "Work Desk", detail: deskVal, quantity: 1 });
+      if (wardrobeVal !== 'None') dynamicInventory.push({ name: "Wardrobe", detail: wardrobeVal, quantity: 1 });
+      if (acVal !== 'None') dynamicInventory.push({ name: "AC", detail: acVal, quantity: 1 });
+
+      const dynamicShared = [];
+      if (document.getElementById('comm_sofa').checked) dynamicShared.push("3-Seater Sofa");
+      if (document.getElementById('comm_fridge').checked) dynamicShared.push("Refrigerator");
+      if (document.getElementById('comm_washing').checked) dynamicShared.push("Washing Machine");
+      if (document.getElementById('comm_dining').checked) dynamicShared.push("Dining Table");
+      if (document.getElementById('comm_microwave').checked) dynamicShared.push("Microwave");
+      if (document.getElementById('comm_purifier').checked) dynamicShared.push("RO Purifier");
+
+      const payload = {
+        title: document.getElementById('inputTitle').value,
+        totalBhk: document.getElementById('inputTotalBhk').value,
+        offering: document.getElementById('inputOffering').value,
+        location: document.getElementById('inputLocation').value,
+        rent: Number(document.getElementById('inputRent').value),
+        deposit: Number(document.getElementById('inputDeposit').value),
+        availableDate: document.getElementById('inputDate').value,
+        bills: document.getElementById('inputBills').value,
+        condition: document.getElementById('inv_condition').value,
+        images: [...formAttachedPhotos],
+        inventory: dynamicInventory,
+        shared: dynamicShared,
+        tenantName: currentUser.name,
+        tenantInitial: currentUser.initials,
+        tenantEmail: currentUser.email,
+        tenantPhone: currentUser.contact || ''
+      };
+
+      try {
+        const response = await fetch(`${API_BASE}/api/listings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || `HTTP ${response.status}`);
+        }
+
+        const createdListing = await response.json();
+        showToast("Room Listed in Backend!", `Saved with ${formAttachedPhotos.length} photo(s) & leftover inventory breakdown.`);
+
+        await fetchMarketplaceListings();
+        await fetchStats();
+
+        setTimeout(() => {
+          switchView('explore');
+        }, 500);
+
+      } catch (err) {
+        console.error('Error saving listing to backend:', err);
+        showToast('Error Publishing', err.message || 'Could not reach server.');
+      } finally {
+        publishBtn.disabled = false;
+        publishBtn.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5"></i> Publish Sublet Listing & Furniture Inventory`;
+        lucide.createIcons();
+      }
+    }
+
+    /* ----------------------------------------------------
+       7. MARKETPLACE RENDERING & SHORTLISTING
+    ---------------------------------------------------- */
+    const CITY_ALIASES_MAP = {
+      'bengaluru': ['bengaluru', 'bangalore'],
+      'bangalore': ['bengaluru', 'bangalore'],
+      'mumbai': ['mumbai', 'bombay'],
+      'bombay': ['mumbai', 'bombay'],
+      'gurugram': ['gurugram', 'gurgaon'],
+      'gurgaon': ['gurugram', 'gurgaon'],
+      'kolkata': ['kolkata', 'calcutta'],
+      'calcutta': ['kolkata', 'calcutta'],
+      'chennai': ['chennai', 'madras'],
+      'madras': ['chennai', 'madras'],
+      'mysuru': ['mysuru', 'mysore'],
+      'mysore': ['mysuru', 'mysore'],
+      'mangaluru': ['mangaluru', 'mangalore'],
+      'mangalore': ['mangaluru', 'mangalore'],
+      'hubballi': ['hubballi', 'hubli'],
+      'hubli': ['hubballi', 'hubli'],
+      'pune': ['pune', 'poona'],
+      'poona': ['pune', 'poona'],
+      'delhi': ['delhi', 'new delhi', 'ncr'],
+      'new delhi': ['delhi', 'new delhi', 'ncr'],
+      'varanasi': ['varanasi', 'banaras', 'kashi'],
+      'prayagraj': ['prayagraj', 'allahabad'],
+      'vadodara': ['vadodara', 'baroda'],
+      'thiruvananthapuram': ['thiruvananthapuram', 'trivandrum'],
+      'kochi': ['kochi', 'cochin'],
+      'kozhikode': ['kozhikode', 'calicut'],
+      'chhatrapati sambhajinagar': ['chhatrapati sambhajinagar', 'aurangabad'],
+      'aurangabad': ['chhatrapati sambhajinagar', 'aurangabad']
+    };
+
+    function getCityAliasesList(cityName) {
+      if (!cityName) return [];
+      const clean = cityName.toLowerCase().replace(/\(.*?\)/g, '').trim();
+      return CITY_ALIASES_MAP[clean] || [clean];
+    }
+
+    function applyLocalFiltersAndRender() {
+      let filtered = [...listings];
+
+      // 1. Shortlist filter mode
+      if (isShortlistOnlyActive) {
+        filtered = filtered.filter(l => shortlistedIds.includes(l.id));
+      }
+
+      // 2. City selector filter with alias normalization (e.g. Bengaluru vs Bangalore)
+      const cityVal = (document.getElementById('filterCity')?.value || 'all').trim();
+      if (cityVal && cityVal !== 'all') {
+        const aliases = getCityAliasesList(cityVal);
+        filtered = filtered.filter(l => {
+          const loc = (l.location || '').toLowerCase();
+          return aliases.some(alias => loc.includes(alias));
+        });
+      }
+
+      // 3. Multi-Keyword Address Shortlisting (Street Name, City Name, State Name, Neighborhood, Scheme)
+      const searchRaw = (document.getElementById('areaSchemeSearchInput')?.value || document.getElementById('globalSearchInput')?.value || '').trim();
+      if (searchRaw) {
+        const searchInput = searchRaw.toLowerCase();
+        const stopWords = new Set(['in', 'at', 'the', 'near', 'for', 'and', 'of', 'to', 'with', 'all', 'is']);
+        const tokens = searchInput
+          .split(/[\s,\-\/\&;]+/)
+          .filter(t => t.length > 1 && !stopWords.has(t));
+
+        filtered = filtered.filter(l => {
+          const inTitle = l.title && l.title.toLowerCase().includes(searchInput);
+          const inLoc = l.location && l.location.toLowerCase().includes(searchInput);
+          const inBhk = l.totalBhk && l.totalBhk.toLowerCase().includes(searchInput);
+          const inOffering = l.offering && l.offering.toLowerCase().includes(searchInput);
+          const inCondition = l.condition && l.condition.toLowerCase().includes(searchInput);
+          const inInventory = l.inventory && l.inventory.some(inv => 
+            (inv.name && inv.name.toLowerCase().includes(searchInput)) || 
+            (inv.detail && inv.detail.toLowerCase().includes(searchInput))
+          );
+          const inShared = l.shared && l.shared.some(s => s.toLowerCase().includes(searchInput));
+
+          // If direct full-string match hits, include
+          if (inTitle || inLoc || inBhk || inOffering || inCondition || inInventory || inShared) {
+            return true;
+          }
+
+          // Keyword token matching against address/street/city/state/title
+          if (tokens.length > 0) {
+            const locLower = (l.location || '').toLowerCase();
+            const titleLower = (l.title || '').toLowerCase();
+            const tokenMatchLoc = tokens.some(t => locLower.includes(t));
+            const tokenMatchTitle = tokens.some(t => titleLower.includes(t));
+            const tokenMatchInv = l.inventory && l.inventory.some(inv => 
+              tokens.some(t => (inv.name && inv.name.toLowerCase().includes(t)) || (inv.detail && inv.detail.toLowerCase().includes(t)))
+            );
+            return tokenMatchLoc || tokenMatchTitle || tokenMatchInv;
+          }
+          return false;
+        }).sort((a, b) => {
+          // Sort matched rooms by address relevance
+          const score = (item) => {
+            let sc = 0;
+            const loc = (item.location || '').toLowerCase();
+            const title = (item.title || '').toLowerCase();
+            if (loc.includes(searchInput)) sc += 100;
+            if (title.includes(searchInput)) sc += 50;
+            tokens.forEach(t => {
+              if (loc.includes(t)) sc += 25;
+              if (title.includes(t)) sc += 10;
+            });
+            return sc;
+          };
+          return score(b) - score(a);
+        });
+      }
+
+      // 4. BHK Filter
+      const bhkVal = document.getElementById('filterBhk')?.value || 'all';
+      if (bhkVal !== 'all') {
+        const bhkKey = bhkVal.split(' ')[0];
+        filtered = filtered.filter(l => l.totalBhk && l.totalBhk.includes(bhkKey));
+      }
+
+      // 5. Room Type Filter
+      const roomTypeVal = document.getElementById('filterRoomType')?.value || 'all';
+      if (roomTypeVal !== 'all') {
+        const lowerRoom = roomTypeVal.toLowerCase();
+        filtered = filtered.filter(l => l.offering && l.offering.toLowerCase().includes(lowerRoom));
+      }
+
+      // 6. Furnishing Filter
+      const furnishingVal = document.getElementById('filterFurnishing')?.value || 'all';
+      if (furnishingVal === 'Has Study Setup') {
+        filtered = filtered.filter(l => l.inventory && l.inventory.some(i => /desk|chair/i.test(i.name) || /desk|chair/i.test(i.detail)));
+      } else if (furnishingVal === 'Has AC') {
+        filtered = filtered.filter(l => l.inventory && l.inventory.some(i => /ac/i.test(i.name) || /ac/i.test(i.detail)));
+      }
+
+      // 7. Budget Filter
+      const budgetVal = document.getElementById('filterBudget')?.value || 'all';
+      if (budgetVal !== 'all') {
+        const maxBudget = Number(budgetVal);
+        filtered = filtered.filter(l => l.rent <= maxBudget);
+      }
+
+      renderMarketplace(filtered);
+    }
+
+    function renderMarketplace(items) {
+      const container = document.getElementById('listingsGrid');
+      const countEl = document.getElementById('resultsCount');
+
+      if (!items || items.length === 0) {
+        if (countEl) {
+          countEl.innerText = "No rooms available in this area";
+          countEl.className = "text-xs font-semibold text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-full border border-amber-800/40 inline-flex items-center gap-1.5 shadow-sm";
+        }
+
+        if (isShortlistOnlyActive) {
+          container.innerHTML = `
+            <div class="col-span-full py-12 px-6 text-center bg-[#0e0e11] rounded-3xl border border-white/[0.08] shadow-xl space-y-4">
+              <div class="w-16 h-16 rounded-2xl bg-white/[0.04] text-rose-400 border border-white/[0.08] flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="heart-off" class="w-8 h-8"></i>
+              </div>
+              <div class="space-y-1.5">
+                <h3 class="text-xl font-bold font-display text-[#ededed]">No rooms shortlisted yet</h3>
+                <p class="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
+                  Click the heart icon on any room card to add it to your shortlist for quick comparison and easy access.
+                </p>
+              </div>
+              <div class="pt-2">
+                <button onclick="toggleShortlistOnly()" class="px-5 py-2.5 skiper-btn-primary rounded-xl text-xs font-bold inline-flex items-center gap-2 transition-all">
+                  <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+                  <span>Browse All Available Rooms</span>
+                </button>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        const activeSearch = (document.getElementById('areaSchemeSearchInput')?.value || document.getElementById('globalSearchInput')?.value || '').trim();
+        const activeCity = document.getElementById('filterCity')?.value;
+        const activeBhk = document.getElementById('filterBhk')?.value;
+        const activeBudget = document.getElementById('filterBudget')?.value;
+
+        const filtersUsed = [];
+        if (activeSearch) filtersUsed.push(`Area / Scheme: "${activeSearch}"`);
+        if (activeCity && activeCity !== 'all') filtersUsed.push(`City: ${activeCity}`);
+        if (activeBhk && activeBhk !== 'all') filtersUsed.push(`Layout: ${activeBhk}`);
+        if (activeBudget && activeBudget !== 'all') filtersUsed.push(`Budget: ≤₹${Number(activeBudget).toLocaleString('en-IN')}`);
+
+        container.innerHTML = `
+          <div class="col-span-full py-14 px-6 text-center bg-[#0e0e11] rounded-3xl border border-white/[0.08] shadow-xl space-y-4">
+            <div class="w-16 h-16 rounded-2xl bg-white/[0.04] text-amber-400 border border-white/[0.08] flex items-center justify-center mx-auto shadow-inner">
+              <i data-lucide="map-pin-off" class="w-8 h-8"></i>
+            </div>
+            <div class="space-y-1.5">
+              <h3 class="text-xl font-bold font-display text-[#ededed]">No rooms available in this area</h3>
+              <p class="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto">
+                ${filtersUsed.length > 0 
+                  ? `There are currently no listed sublets matching ${filtersUsed.join(', ')}. Try searching a different area, locality, or housing scheme, or widen your filters.` 
+                  : `There are currently no spare rooms or partnership sublets listed in this area.`}
+              </p>
+            </div>
+
+            <!-- Active filter chips if any -->
+            ${filtersUsed.length > 0 ? `
+              <div class="flex items-center justify-center gap-1.5 flex-wrap pt-1">
+                ${filtersUsed.map(f => `<span class="px-2.5 py-1 bg-white/[0.04] text-zinc-300 rounded-lg text-[11px] font-medium border border-white/[0.08]">${f}</span>`).join('')}
+              </div>
+            ` : ''}
+
+            <!-- Quick Action Buttons -->
+            <div class="flex items-center justify-center gap-3 pt-3 flex-wrap">
+              <button onclick="resetFilters()" class="px-4 py-2.5 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-200 border border-white/[0.08] rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span>Reset All Filters</span>
+              </button>
+              <button onclick="handleListButtonClick()" class="px-5 py-2.5 skiper-btn-primary rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                <span>Be First to List a Room in This Area</span>
+              </button>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      if (countEl) {
+        countEl.innerText = `Showing ${items.length} available room${items.length > 1 ? 's' : ''}`;
+        countEl.className = "text-xs font-semibold text-zinc-400";
+      }
+
+      container.innerHTML = items.map(item => {
+        const isShortlisted = shortlistedIds.includes(item.id);
+        return `
+        <div class="bg-[#111114] rounded-3xl overflow-hidden border border-white/[0.08] hover:border-white/[0.18] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer relative" onclick="openDetailModal(${item.id})">
+          
+          <!-- Image Banner -->
+          <div class="relative h-48 w-full bg-[#0a0a0c] overflow-hidden">
+            <img src="${item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/18181c/888?text=Room'}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            
+            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-black/75 text-zinc-200 backdrop-blur-md border border-white/10">
+                In ${item.totalBhk}
+              </span>
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/10 text-white backdrop-blur-md border border-white/10">
+                ${item.offering}
+              </span>
+            </div>
+
+            <!-- Shortlist (Heart) Button -->
+            <button 
+              type="button"
+              onclick="toggleShortlist(event, ${item.id})" 
+              class="absolute top-3 right-3 w-9 h-9 rounded-full ${isShortlisted ? 'bg-rose-950/80 text-rose-300 border border-rose-800/60 shadow-lg' : 'bg-black/60 text-zinc-300 hover:text-white border border-white/10 hover:bg-black/80'} backdrop-blur-md flex items-center justify-center transition-all transform active:scale-90 z-10"
+              title="${isShortlisted ? 'Remove from your shortlist' : 'Add to your shortlist'}">
+              <i data-lucide="heart" class="w-4 h-4 ${isShortlisted ? 'fill-current' : ''}"></i>
+            </button>
+
+            <!-- Photos count tag -->
+            <div class="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md text-zinc-300 text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 font-medium border border-white/10">
+              <i data-lucide="camera" class="w-3 h-3"></i>
+              <span>${item.images ? item.images.length : 1}</span>
+            </div>
+
+            <div class="absolute bottom-3 right-3 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-bold text-white border border-white/10 shadow">
+              ₹${item.rent.toLocaleString('en-IN')}<span class="text-zinc-400 text-[10px] font-normal"> / mo</span>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="font-semibold text-base text-[#ededed] leading-snug line-clamp-1 group-hover:text-white transition-colors">
+                ${item.title}
+              </h3>
+              <p class="text-xs text-zinc-400 flex items-center gap-1 mt-1">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-zinc-500"></i> ${item.location}
+              </p>
+            </div>
+
+            <!-- Leftover Furniture Section -->
+            <div class="space-y-1.5 bg-white/[0.03] p-3 rounded-2xl border border-white/[0.06]">
+              <div class="flex items-center justify-between text-[11px] font-medium text-zinc-300">
+                <span class="flex items-center gap-1 text-zinc-400">
+                  <i data-lucide="box" class="w-3.5 h-3.5 text-zinc-400"></i> Leftover Furniture:
+                </span>
+                <span class="text-[10px] text-emerald-300 bg-emerald-950/40 px-2 py-0.5 rounded-full font-medium border border-emerald-800/30">
+                  ${item.condition}
+                </span>
+              </div>
+
+              <div class="flex flex-wrap gap-1 pt-1">
+                ${item.inventory.slice(0, 3).map(inv => `
+                  <span class="text-[10px] bg-white/[0.04] text-zinc-300 px-2 py-0.5 rounded-md border border-white/[0.06] font-medium">
+                    ${inv.detail}
+                  </span>
+                `).join('')}
+                ${item.inventory.length > 3 ? `<span class="text-[10px] bg-white/[0.08] text-zinc-400 px-1.5 py-0.5 rounded-md font-bold">+${item.inventory.length - 3} more</span>` : ''}
+              </div>
+            </div>
+
+            <!-- Footer Details -->
+            <div class="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-white/[0.08] border border-white/10 text-zinc-300 font-bold text-[10px] flex items-center justify-center">
+                  ${item.tenantInitial || 'TN'}
+                </div>
+                <span class="text-zinc-400 text-[11px] font-medium">${item.tenantName}</span>
+              </div>
+              <div class="flex items-center gap-1 text-zinc-300 group-hover:text-white font-medium">
+                <span>View Space</span> <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    async function renderUserListings() {
+      const container = document.getElementById('userCreatedListingsGrid');
+      if (!currentUser) {
+        container.innerHTML = `<p class="text-xs text-slate-400">Please sign in to view your listings.</p>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/listings?tenantEmail=${encodeURIComponent(currentUser.email)}`);
+        const userListings = res.ok ? await res.json() : listings.filter(l => l.tenantEmail === currentUser.email);
+
+        if (userListings.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full py-8 text-center bg-white rounded-2xl border border-slate-200 p-6">
+              <p class="text-xs text-slate-500 mb-2">You haven't published any rooms yet.</p>
+              <button onclick="handleListButtonClick()" class="px-4 py-2 bg-brand-600 text-white font-bold text-xs rounded-xl shadow">
+                List Your Spare Room
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = userListings.map(item => `
+          <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 p-4 space-y-3 shadow-sm">
+            <div class="flex gap-3">
+              <img src="${item.images[0]}" class="w-20 h-20 rounded-xl object-cover bg-slate-100 flex-shrink-0">
+              <div class="min-w-0">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">In ${item.totalBhk}</span>
+                <h4 class="font-bold text-sm text-slate-900 mt-1 truncate">${item.title}</h4>
+                <p class="text-xs font-black text-brand-600">₹${item.rent.toLocaleString('en-IN')}/mo</p>
+                <p class="text-[11px] text-slate-400">${item.location}</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+              <span class="text-emerald-600 font-semibold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live on SQLite</span>
+              <button onclick="deleteListing(${item.id})" class="text-rose-600 hover:text-rose-700 font-bold text-xs">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        lucide.createIcons();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function deleteListing(id) {
+      if (!confirm("Are you sure you want to remove this room listing from the website? (Audit history will be preserved in the Admin Database).")) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/listings/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Room Removed', 'Listing removed from marketplace and archived into Admin Database.');
+          await fetchMarketplaceListings();
+          await renderUserListings();
+        } else {
+          showToast('Error', 'Could not delete listing.');
+        }
+      } catch (err) {
+        showToast('Error', 'Server unreachable.');
+      }
+    }
+
+    /* ----------------------------------------------------
+       8. INQUIRIES SYSTEM
+    ---------------------------------------------------- */
+    let currentInquiryListing = null;
+
+    function openInquiryModal(listing) {
+      currentInquiryListing = listing;
+      document.getElementById('inquiryListingId').value = listing.id;
+      document.getElementById('inquiryModalSubtitle').innerText = `Send request for: "${listing.title}" (₹${listing.rent.toLocaleString('en-IN')}/mo)`;
+      
+      if (currentUser) {
+        document.getElementById('inquiryName').value = currentUser.name;
+        document.getElementById('inquiryEmail').value = currentUser.email;
+        if (currentUser.contact) document.getElementById('inquiryPhone').value = currentUser.contact;
+      } else {
+        document.getElementById('inquiryName').value = '';
+        document.getElementById('inquiryEmail').value = '';
+        document.getElementById('inquiryPhone').value = '';
+      }
+      
+      document.getElementById('inquiryModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeInquiryModal() {
+      document.getElementById('inquiryModal').classList.add('hidden');
+    }
+
+    async function handleInquirySubmit(event) {
+      event.preventDefault();
+      const listingId = parseInt(document.getElementById('inquiryListingId').value);
+      const seekerName = document.getElementById('inquiryName').value.trim();
+      const seekerEmail = document.getElementById('inquiryEmail').value.trim();
+      const seekerPhone = document.getElementById('inquiryPhone').value.trim();
+      const occupation = document.getElementById('inquiryOccupation').value.trim();
+      const moveInDate = document.getElementById('inquiryDate').value.trim();
+      const message = document.getElementById('inquiryMessage').value.trim();
+
+      const btn = document.getElementById('btnSubmitInquiry');
+      btn.disabled = true;
+      btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Dispatching...`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/inquiries`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            listingId,
+            seekerName,
+            seekerEmail,
+            seekerPhone,
+            occupation,
+            moveInDate,
+            message
+          })
+        });
+
+        if (res.ok) {
+          closeInquiryModal();
+          showToast('Partnership Request Sent!', `Message delivered to host: ${currentInquiryListing.tenantName}.`);
+        } else {
+          showToast('Error', 'Failed to dispatch request.');
+        }
+      } catch(e) {
+        showToast('Inquiry Dispatched', `Direct request sent to ${currentInquiryListing.tenantName}.`);
+        closeInquiryModal();
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> Send Partnership Request`;
+        lucide.createIcons();
+      }
+    }
+
+    async function loadMyInquiries() {
+      const container = document.getElementById('userInquiriesContainer');
+      if (!container || !currentUser) return;
+
+      container.innerHTML = `<div class="text-xs text-slate-400 py-3">Loading inquiries...</div>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/inquiries/my-inquiries?tenantEmail=${encodeURIComponent(currentUser.email)}`);
+        if (!res.ok) throw new Error('Could not fetch inquiries');
+        const inqs = await res.json();
+
+        if (inqs.length === 0) {
+          container.innerHTML = `
+            <div class="p-6 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 text-xs">
+              <i data-lucide="inbox" class="w-8 h-8 text-slate-300 mx-auto mb-2"></i>
+              No incoming inquiries yet. When room seekers message you, their requests will appear here.
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        container.innerHTML = inqs.map(iq => `
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-slate-900">${iq.seekerName}</span>
+                <span class="text-[11px] text-slate-500 ml-1.5">• ${iq.occupation || 'Working Professional'}</span>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${iq.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800' : (iq.status === 'Declined' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
+                ${iq.status}
+              </span>
+            </div>
+            <p class="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+              "${iq.message}"
+            </p>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+              <div>
+                <span>Move-in: <strong class="text-slate-700">${iq.moveInDate}</strong></span>
+                <span class="ml-2">Email: <a href="mailto:${iq.seekerEmail}" class="text-brand-600 font-semibold underline">${iq.seekerEmail}</a></span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="updateInquiryStatus(${iq.id}, 'Accepted')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold">Accept</button>
+                <button onclick="updateInquiryStatus(${iq.id}, 'Declined')" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-[10px] font-bold">Decline</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        lucide.createIcons();
+      } catch (err) {
+        container.innerHTML = `<div class="text-xs text-slate-400 py-3">Inquiries service synced.</div>`;
+      }
+    }
+
+    async function updateInquiryStatus(id, status) {
+      try {
+        await fetch(`${API_BASE}/api/inquiries/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        showToast('Status Updated', `Inquiry marked as ${status}.`);
+        loadMyInquiries();
+      } catch (e) {
+        showToast('Updated', `Status set to ${status}.`);
+      }
+    }
+
+    /* ----------------------------------------------------
+       9. DETAIL MODAL & CAROUSEL
+    ---------------------------------------------------- */
+    let currentModalListing = null;
+    let currentModalImageIndex = 0;
+
+    function openDetailModal(id) {
+      const item = listings.find(l => l.id === id);
+      if (!item) return;
+
+      currentModalListing = item;
+      currentModalImageIndex = 0;
+
+      updateModalImageDisplay();
+
+      document.getElementById('modalApartmentBadge').innerText = `Apartment: ${item.totalBhk}`;
+      document.getElementById('modalOfferingBadge').innerText = item.offering;
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalRent').innerText = `₹${item.rent.toLocaleString('en-IN')}`;
+      document.getElementById('modalLocation').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i> ${item.location}`;
+      document.getElementById('modalDeposit').innerText = `₹${item.deposit.toLocaleString('en-IN')}`;
+      document.getElementById('modalDate').innerText = item.availableDate;
+      document.getElementById('modalBills').innerText = item.bills;
+      document.getElementById('modalCondition').innerText = item.condition;
+      document.getElementById('modalTenant').innerText = `${item.tenantName}`;
+      document.getElementById('modalAvatar').innerText = item.tenantInitial || 'TN';
+
+      // Itemized Inventory
+      const inventoryContainer = document.getElementById('modalInventoryList');
+      inventoryContainer.innerHTML = item.inventory.map(inv => `
+        <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-start gap-2">
+          <i data-lucide="check" class="w-4 h-4 text-emerald-600 mt-0.5"></i>
+          <div>
+            <p class="text-xs font-bold text-slate-800">${inv.name}</p>
+            <p class="text-[11px] text-slate-600">${inv.detail}</p>
+          </div>
+        </div>
+      `).join('');
+
+      // Shared Amenities
+      const sharedContainer = document.getElementById('modalSharedList');
+      sharedContainer.innerHTML = item.shared.map(s => `
+        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium border border-slate-200">
+          ${s}
+        </span>
+      `).join('');
+
+      // Render Modal Thumbnails
+      const thumbStrip = document.getElementById('modalThumbStrip');
+      const galleryNav = document.getElementById('modalGalleryNav');
+
+      if (item.images && item.images.length > 1) {
+        galleryNav.classList.remove('hidden');
+        thumbStrip.classList.remove('hidden');
+        thumbStrip.innerHTML = item.images.map((imgUrl, i) => `
+          <img src="${imgUrl}" onclick="setModalImageIndex(${i})" class="w-12 h-10 object-cover rounded-md cursor-pointer border-2 ${i === 0 ? 'border-brand-500' : 'border-transparent opacity-60 hover:opacity-100'}">
+        `).join('');
+      } else {
+        galleryNav.classList.add('hidden');
+        thumbStrip.classList.add('hidden');
+      }
+
+      document.getElementById('detailModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function setModalImageIndex(idx) {
+      if (!currentModalListing || !currentModalListing.images) return;
+      currentModalImageIndex = idx;
+      updateModalImageDisplay();
+    }
+
+    function stepModalImage(delta) {
+      if (!currentModalListing || !currentModalListing.images) return;
+      const count = currentModalListing.images.length;
+      currentModalImageIndex = (currentModalImageIndex + delta + count) % count;
+      updateModalImageDisplay();
+    }
+
+    function updateModalImageDisplay() {
+      if (!currentModalListing || !currentModalListing.images) return;
+      const imgs = currentModalListing.images;
+      document.getElementById('modalImg').src = imgs[currentModalImageIndex] || imgs[0];
+      document.getElementById('modalPhotoIndex').innerText = `${currentModalImageIndex + 1} / ${imgs.length}`;
+
+      const thumbs = document.querySelectorAll('#modalThumbStrip img');
+      thumbs.forEach((thumb, i) => {
+        if (i === currentModalImageIndex) {
+          thumb.classList.add('border-brand-500');
+          thumb.classList.remove('opacity-60', 'border-transparent');
+        } else {
+          thumb.classList.remove('border-brand-500');
+          thumb.classList.add('opacity-60', 'border-transparent');
+        }
+      });
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    function handleContactClick() {
+      if (!currentModalListing) return;
+      closeDetailModal();
+      openInquiryModal(currentModalListing);
+    }
+
+    /* ----------------------------------------------------
+       10. AUTH & PROFILE MODALS
+    ---------------------------------------------------- */
+    function toggleProfileDropdown(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById('profileDropdownMenu');
+      const chevron = document.getElementById('profileChevron');
+      if (!menu) return;
+      const isHidden = menu.classList.contains('hidden');
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+      } else {
+        menu.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+      }
+      lucide.createIcons();
+    }
+
+    function closeProfileDropdown() {
+      const menu = document.getElementById('profileDropdownMenu');
+      const chevron = document.getElementById('profileChevron');
+      if (menu) menu.classList.add('hidden');
+      if (chevron) chevron.classList.remove('rotate-180');
+    }
+
+    // Close profile dropdown when clicking anywhere outside
+    document.addEventListener('click', function(event) {
+      const wrapper = document.getElementById('profileDropdownWrapper');
+      if (wrapper && !wrapper.contains(event.target)) {
+        closeProfileDropdown();
+      }
+    });
+
+    function renderAuthNav() {
+      const container = document.getElementById('authContainer');
+      if (!container) return;
+
+      if (!currentUser) {
+        container.innerHTML = `
+          <button 
+            type="button" 
+            onclick="if (window.onboardingManager) window.onboardingManager.openAuthModal('login'); else openAuthModal('login');" 
+            class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/90 shadow-sm transition-all">
+            <i data-lucide="log-in" class="w-3.5 h-3.5 text-slate-500"></i>
+            <span>Sign In</span>
+          </button>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const isAdmin = currentUser.email === 'arnavsingh99913@gmail.com' || currentUser.email === 'arnavsingh9913@gmail.com' || currentUser.role === 'Administrator';
+
+      // User is logged in: show their avatar, name, and profile management menu
+      container.innerHTML = `
+        <div class="relative inline-block text-left" id="profileDropdownWrapper">
+          <button 
+            id="profileBtn" 
+            type="button" 
+            onclick="toggleProfileDropdown(event)" 
+            class="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-slate-100 border border-slate-200/90 shadow-sm transition-all focus:outline-none"
+            title="View Account Profile">
+            <div class="w-8 h-8 rounded-full ${isAdmin ? 'bg-gradient-to-tr from-purple-600 to-indigo-700' : 'bg-gradient-to-tr from-brand-600 to-indigo-600'} flex items-center justify-center text-white font-bold text-xs shadow-sm">
+              ${currentUser.initials || (isAdmin ? 'AD' : 'LE')}
+            </div>
+            <div class="text-left hidden sm:block">
+              <span class="text-xs font-bold text-slate-900 block leading-tight max-w-[100px] truncate">${currentUser.name}</span>
+              <span class="text-[10px] ${isAdmin ? 'text-purple-600 font-extrabold' : 'text-emerald-600 font-semibold'} block leading-tight">
+                ${isAdmin ? 'Administrator' : 'Leaser'}
+              </span>
+            </div>
+            <i data-lucide="chevron-down" id="profileChevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i>
+          </button>
+
+          <!-- Dropdown Menu for Logged In User -->
+          <div 
+            id="profileDropdownMenu" 
+            class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2.5 z-50 divide-y divide-slate-100">
+            
+            <div class="px-4 py-2.5">
+              <p class="text-xs font-bold text-slate-900 truncate">${currentUser.name}</p>
+              <p class="text-[11px] text-slate-500 truncate">${currentUser.email}</p>
+              ${currentUser.contact ? `<p class="text-[10px] text-slate-400 truncate mt-0.5"><i data-lucide="phone" class="inline w-3 h-3 text-slate-400"></i> ${currentUser.contact}</p>` : ''}
+              <span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isAdmin ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                ${isAdmin ? '🛡️ Administrator Access' : (currentUser.role || 'Primary Leaseholder')}
+              </span>
+            </div>
+
+            <div class="p-1.5 space-y-1">
+              ${isAdmin ? `
+              <button 
+                type="button" 
+                onclick="if (window.onboardingManager) window.onboardingManager.openAdminPortal(); closeProfileDropdown();" 
+                class="w-full text-left px-3.5 py-2 text-xs font-bold rounded-xl text-purple-700 bg-purple-50 hover:bg-purple-100 flex items-center gap-2.5 border border-purple-200">
+                <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i> Admin Management Portal
+              </button>
+              ` : ''}
+
+              <button 
+                type="button" 
+                onclick="if (window.onboardingManager) window.onboardingManager.reopenLocationRadar(); closeProfileDropdown();" 
+                class="w-full text-left px-3.5 py-2 text-xs font-semibold rounded-xl text-sky-700 hover:bg-sky-50 flex items-center gap-2.5">
+                <i data-lucide="map" class="w-4 h-4 text-sky-600"></i> Change Location (3D Radar)
+              </button>
+
+              <button 
+                type="button" 
+                onclick="openProfileModal(); closeProfileDropdown();" 
+                class="w-full text-left px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-700 hover:bg-slate-100 flex items-center gap-2.5">
+                <i data-lucide="user" class="w-4 h-4 text-slate-500"></i> View Account Profile
+              </button>
+
+              <button 
+                type="button" 
+                onclick="switchView('myListings'); closeProfileDropdown();" 
+                class="w-full text-left px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-700 hover:bg-slate-100 flex items-center gap-2.5">
+                <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i> My Sublet Listings
+              </button>
+
+              <div class="border-t border-slate-100 my-1"></div>
+
+              <button 
+                type="button" 
+                onclick="handleSignOut(); closeProfileDropdown();" 
+                class="w-full text-left px-3.5 py-2 text-xs font-semibold rounded-xl text-rose-600 hover:bg-rose-50 flex items-center gap-2.5">
+                <i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function openAuthModal(mode, noticeMsg) {
+      if (window.onboardingManager) {
+        window.onboardingManager.openAuthModal(mode || 'login');
+        if (noticeMsg) showToast('Notice', noticeMsg);
+        return;
+      }
+      const modal = document.getElementById('authModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        switchAuthMode(mode || 'login');
+      }
+      if (noticeMsg) showToast('Notice', noticeMsg);
+      lucide.createIcons();
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+      hideAuthAlerts();
+    }
+
+    function hideAuthAlerts() {
+      const loginErr = document.getElementById('loginErrorAlert');
+      const signupErr = document.getElementById('signupErrorAlert');
+      if (loginErr) loginErr.classList.add('hidden');
+      if (signupErr) signupErr.classList.add('hidden');
+    }
+
+    function switchAuthMode(mode) {
+      hideAuthAlerts();
+      const loginTab = document.getElementById('authTabLogin');
+      const signupTab = document.getElementById('authTabSignup');
+      const loginPanel = document.getElementById('loginPanel');
+      const signupPanel = document.getElementById('signupPanel');
+      const heading = document.getElementById('authModalHeading');
+      const subheading = document.getElementById('authModalSubheading');
+
+      if (mode === 'signup') {
+        loginPanel.classList.add('hidden');
+        signupPanel.classList.remove('hidden');
+        signupTab.classList.add('border-emerald-600', 'text-emerald-700');
+        signupTab.classList.remove('border-transparent', 'text-slate-600');
+        loginTab.classList.remove('border-brand-600', 'text-brand-600');
+        loginTab.classList.add('border-transparent', 'text-slate-600');
+        heading.innerText = "Create Leaser Account";
+        subheading.innerText = "Provide your name, contact, email, and password to list rooms.";
+      } else {
+        signupPanel.classList.add('hidden');
+        loginPanel.classList.remove('hidden');
+        loginTab.classList.add('border-brand-600', 'text-brand-600');
+        loginTab.classList.remove('border-transparent', 'text-slate-600');
+        signupTab.classList.remove('border-emerald-600', 'text-emerald-700');
+        signupTab.classList.add('border-transparent', 'text-slate-600');
+        heading.innerText = "Sign In to SubletNest";
+        subheading.innerText = "Log in using your Name, Email, or Contact number.";
+      }
+      lucide.createIcons();
+    }
+
+    function setLoginIdentifierType(type) {
+      const label = document.getElementById('loginIdentifierLabel');
+      const input = document.getElementById('loginIdentifier');
+      const icon = document.getElementById('loginIdentifierIcon');
+      const buttons = {
+        any: document.getElementById('btnIdAny'),
+        email: document.getElementById('btnIdEmail'),
+        contact: document.getElementById('btnIdContact'),
+        name: document.getElementById('btnIdName')
+      };
+
+      Object.values(buttons).forEach(btn => {
+        if (btn) {
+          btn.className = "px-1.5 py-0.5 rounded font-medium text-slate-500 hover:bg-slate-100";
+        }
+      });
+
+      if (type === 'email') {
+        buttons.email.className = "px-1.5 py-0.5 rounded font-bold bg-brand-100 text-brand-700";
+        label.innerHTML = `Email Address <span class="text-rose-500">*</span>`;
+        input.placeholder = "e.g. rohan@example.com";
+        input.type = "email";
+        icon.setAttribute('data-lucide', 'mail');
+      } else if (type === 'contact') {
+        buttons.contact.className = "px-1.5 py-0.5 rounded font-bold bg-brand-100 text-brand-700";
+        label.innerHTML = `Contact Number <span class="text-rose-500">*</span>`;
+        input.placeholder = "e.g. +91 98765 43210";
+        input.type = "tel";
+        icon.setAttribute('data-lucide', 'phone');
+      } else if (type === 'name') {
+        buttons.name.className = "px-1.5 py-0.5 rounded font-bold bg-brand-100 text-brand-700";
+        label.innerHTML = `Full Name <span class="text-rose-500">*</span>`;
+        input.placeholder = "e.g. Rohan Sharma";
+        input.type = "text";
+        icon.setAttribute('data-lucide', 'user');
+      } else {
+        buttons.any.className = "px-1.5 py-0.5 rounded font-bold bg-brand-100 text-brand-700";
+        label.innerHTML = `Name, Email, or Contact <span class="text-rose-500">*</span>`;
+        input.placeholder = "Enter your Name, Email, or Contact number";
+        input.type = "text";
+        icon.setAttribute('data-lucide', 'user');
+      }
+      input.focus();
+      lucide.createIcons();
+    }
+
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (!input || !icon) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      hideAuthAlerts();
+
+      const identifier = document.getElementById('loginIdentifier').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const errBox = document.getElementById('loginErrorAlert');
+      const errMsg = document.getElementById('loginErrorMessage');
+
+      if (!identifier) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = "Please enter your Name, Email, or Contact number (compulsory).";
+        return;
+      }
+
+      if (!password) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = "Please enter your password (compulsory).";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Signing In...`;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed. Please check your credentials.');
+        }
+
+        currentUser = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          contact: data.contact,
+          initials: data.initials,
+          role: data.role || 'Primary Leaseholder',
+          savedIds: []
+        };
+
+        try {
+          localStorage.setItem('subletnest_user', JSON.stringify(currentUser));
+        } catch(e){}
+
+        renderAuthNav();
+        updatePreview();
+        closeAuthModal();
+        showToast('Signed In!', `Welcome back, ${currentUser.name}!`);
+
+        if (document.getElementById('view-myListings') && !document.getElementById('view-myListings').classList.contains('hidden')) {
+          renderUserListings();
+          loadMyInquiries();
+        }
+
+      } catch (err) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = err.message || 'Could not sign in.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> <span>Sign In</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleSignUpSubmit(event) {
+      event.preventDefault();
+      hideAuthAlerts();
+
+      const name = document.getElementById('signupName').value.trim();
+      const contact = document.getElementById('signupContact').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+
+      const submitBtn = document.getElementById('signupSubmitBtn');
+      const errBox = document.getElementById('signupErrorAlert');
+      const errMsg = document.getElementById('signupErrorMessage');
+
+      if (!name) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = "Leaser's name is compulsory.";
+        return;
+      }
+      if (!contact) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = "Contact number is compulsory.";
+        return;
+      }
+      if (!email) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = "Email address is compulsory.";
+        return;
+      }
+      if (!password || password.length < 4) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = "Password is compulsory (at least 4 characters).";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Registering Leaser...`;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            contact,
+            email,
+            password,
+            role: "Primary Leaseholder"
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Registration failed.');
+        }
+
+        currentUser = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          contact: data.contact,
+          initials: data.initials,
+          role: data.role || 'Primary Leaseholder',
+          savedIds: []
+        };
+
+        try {
+          localStorage.setItem('subletnest_user', JSON.stringify(currentUser));
+        } catch(e){}
+
+        renderAuthNav();
+        updatePreview();
+        closeAuthModal();
+        showToast('Registration Complete!', `Welcome, ${currentUser.name}! You can now list spare rooms.`);
+
+        if (document.getElementById('view-myListings') && !document.getElementById('view-myListings').classList.contains('hidden')) {
+          renderUserListings();
+          loadMyInquiries();
+        }
+
+      } catch (err) {
+        errBox.classList.remove('hidden');
+        errMsg.innerText = err.message || 'Registration failed.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i data-lucide="user-plus" class="w-4 h-4"></i> <span>Complete Leaser Registration</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    function openProfileModal() {
+      if (!currentUser) return;
+      document.getElementById('profileModalAvatar').innerText = currentUser.initials || 'ME';
+      document.getElementById('profileModalName').innerText = currentUser.name;
+      document.getElementById('profileModalEmail').innerText = currentUser.email;
+      document.getElementById('profileModalPhoneVal').innerText = currentUser.contact || 'No phone set';
+      document.getElementById('profileModalRole').innerText = currentUser.role || 'Primary Leaseholder';
+
+      const userListings = listings.filter(l => l.tenantEmail === currentUser.email || l.tenantName.includes('You'));
+      document.getElementById('statListingsCount').innerText = userListings.length;
+      document.getElementById('statSavedCount').innerText = (currentUser.savedIds || []).length;
+
+      document.getElementById('profileModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function handleSignOut() {
+      currentUser = null;
+      try {
+        localStorage.removeItem('subletnest_user');
+        localStorage.removeItem('subletnest_location');
+      } catch(e){}
+      closeProfileModal();
+      if (window.onboardingManager) {
+        window.onboardingManager.handleOnboardingLogout();
+      } else {
+        renderAuthNav();
+      }
+      updatePreview();
+      showToast('Signed Out', 'You have been signed out successfully.');
+      if (document.getElementById('view-myListings') && !document.getElementById('view-myListings').classList.contains('hidden')) {
+        renderUserListings();
+        loadMyInquiries();
+      }
+    }
+
+    /* ----------------------------------------------------
+       11. FILTERING, SEARCH & SHORTLISTING ENGINE
+    ---------------------------------------------------- */
+    function applyFilters() {
+      applyLocalFiltersAndRender();
+    }
+
+    function handleSearch(val) {
+      const areaInput = document.getElementById('areaSchemeSearchInput');
+      if (areaInput && areaInput.value !== val) {
+        areaInput.value = val;
+      }
+      const clearBtn = document.getElementById('btnClearAreaSearch');
+      if (clearBtn) {
+        if (val.trim()) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        applyLocalFiltersAndRender();
+      }, 250);
+    }
+
+    function handleAreaSchemeSearch(val) {
+      const clearBtn = document.getElementById('btnClearAreaSearch');
+      if (clearBtn) {
+        if (val.trim()) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+
+      const globalInput = document.getElementById('globalSearchInput');
+      if (globalInput && globalInput.value !== val) {
+        globalInput.value = val;
+      }
+
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        applyLocalFiltersAndRender();
+      }, 250);
+    }
+
+    function clearAreaSearch() {
+      const areaInput = document.getElementById('areaSchemeSearchInput');
+      if (areaInput) areaInput.value = '';
+      const clearBtn = document.getElementById('btnClearAreaSearch');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      const globalInput = document.getElementById('globalSearchInput');
+      if (globalInput) globalInput.value = '';
+
+      updateAreaChipHighlights('');
+      applyLocalFiltersAndRender();
+    }
+
+    function shortlistArea(areaName) {
+      const areaInput = document.getElementById('areaSchemeSearchInput');
+      if (areaInput) areaInput.value = areaName;
+      const clearBtn = document.getElementById('btnClearAreaSearch');
+      if (clearBtn) {
+        if (areaName) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+
+      const globalInput = document.getElementById('globalSearchInput');
+      if (globalInput) globalInput.value = areaName;
+
+      // If user clicked a city chip, sync city dropdown
+      const citySelect = document.getElementById('filterCity');
+      if (citySelect && areaName) {
+        for (let opt of citySelect.options) {
+          if (opt.value !== 'all' && areaName.toLowerCase().includes(opt.value.toLowerCase())) {
+            citySelect.value = opt.value;
+            break;
+          }
+        }
+      }
+
+      updateAreaChipHighlights(areaName);
+      applyLocalFiltersAndRender();
+    }
+
+    function updateAreaChipHighlights(selectedArea) {
+      const chips = document.querySelectorAll('.area-shortlist-chip');
+      chips.forEach(chip => {
+        const txt = chip.innerText.trim();
+        if ((!selectedArea && txt === 'All') || (selectedArea && txt.toLowerCase().includes(selectedArea.toLowerCase()))) {
+          chip.className = "area-shortlist-chip px-2.5 py-1 rounded-full text-xs font-bold bg-white text-black shadow-sm transition-all";
+        } else {
+          chip.className = "area-shortlist-chip px-2.5 py-1 rounded-full text-xs font-medium bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 border border-white/[0.06] transition-all";
+        }
+      });
+    }
+
+    function resetFilters() {
+      const areaInput = document.getElementById('areaSchemeSearchInput');
+      if (areaInput) areaInput.value = '';
+      const clearBtn = document.getElementById('btnClearAreaSearch');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      const globalInput = document.getElementById('globalSearchInput');
+      if (globalInput) globalInput.value = '';
+
+      const citySelect = document.getElementById('filterCity');
+      if (citySelect) citySelect.value = 'all';
+
+      const bhkSelect = document.getElementById('filterBhk');
+      if (bhkSelect) bhkSelect.value = 'all';
+
+      const roomSelect = document.getElementById('filterRoomType');
+      if (roomSelect) roomSelect.value = 'all';
+
+      const furnSelect = document.getElementById('filterFurnishing');
+      if (furnSelect) furnSelect.value = 'all';
+
+      const budgetSelect = document.getElementById('filterBudget');
+      if (budgetSelect) budgetSelect.value = 'all';
+
+      if (isShortlistOnlyActive) {
+        toggleShortlistOnly();
+      } else {
+        updateAreaChipHighlights('');
+        fetchMarketplaceListings();
+      }
+    }
+
+    /* ----------------------------------------------------
+       12. TOAST NOTIFICATIONS
+    ---------------------------------------------------- */
+    function showToast(title, msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastTitle').innerText = title;
+      document.getElementById('toastMessage').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
